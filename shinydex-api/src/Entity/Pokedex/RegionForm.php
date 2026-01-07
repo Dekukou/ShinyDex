@@ -4,6 +4,8 @@ namespace App\Entity\Pokedex;
 
 use ApiPlatform\Metadata as Api;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[Api\ApiResource]
 #[ORM\Entity]
@@ -14,12 +16,16 @@ class RegionForm
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 50, unique: true)]
     private string $name;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?PokemonSpecies $species = null;
+    #[ORM\OneToMany(mappedBy: 'regionForm', targetEntity: Pokemon::class)]
+    private Collection $pokemons;
+
+    public function __construct()
+    {
+        $this->pokemons = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -37,14 +43,9 @@ class RegionForm
         return $this;
     }
 
-    public function getSpecies(): ?PokemonSpecies
+    /** @return Collection<int, Pokemon> */
+    public function getPokemons(): Collection
     {
-        return $this->species;
-    }
-
-    public function setSpecies(?PokemonSpecies $species): self
-    {
-        $this->species = $species;
-        return $this;
+        return $this->pokemons;
     }
 }

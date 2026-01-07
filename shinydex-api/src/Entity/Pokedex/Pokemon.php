@@ -2,22 +2,22 @@
 
 namespace App\Entity\Pokedex;
 
-use ApiPlatform\Metadata as Api;
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-
-use App\Entity\Fight\PokemonType;
-use App\Entity\Ability\PokemonAbility;
-use App\Entity\Reproduction\PokemonEggGroup;
-use App\Entity\Evolution\PokemonFamily;
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Evolution\PokemonEvolution;
+use App\Entity\Evolution\PokemonFamily;
+use App\Entity\Ability\PokemonAbility;
 use App\Entity\Capture\PokemonCaptureHistory;
-use App\Entity\Sprite\PokemonSprite;
+use App\Entity\Fight\PokemonType;
 use App\Entity\Fight\PokemonAttackLevel;
 use App\Entity\Fight\PokemonAttackMachine;
+use App\Entity\Pokedex\RegionForm;
+use App\Entity\Reproduction\PokemonEggGroup;
+use App\Entity\Sprite\PokemonSprite;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
-#[Api\ApiResource]
+#[ApiResource]
 #[ORM\Entity]
 class Pokemon
 {
@@ -26,74 +26,57 @@ class Pokemon
     #[ORM\Column]
     private ?int $id = null;
 
-    /**
-     * Numéro national du Pokédex
-     */
-    #[ORM\Column]
-    private int $dexNumber;
+    // ==================================================
+    // CORE
+    // ==================================================
 
-    /**
-     * Nom affiché
-     */
-    #[ORM\Column(length: 150)]
-    private string $name;
-
-    /**
-     * Espèce (Bulbasaur, Charmander…)
-     */
     #[ORM\ManyToOne(inversedBy: 'pokemons')]
     #[ORM\JoinColumn(nullable: false)]
     private ?PokemonSpecies $species = null;
 
-    /**
-     * Génération d’introduction
-     */
-    #[ORM\ManyToOne(inversedBy: 'pokemons')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Generation $generation = null;
+    #[ORM\Column(length: 150, unique: true)]
+    private string $nameEn;
 
-    /**
-     * Types du Pokémon
-     */
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonType::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $types;
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $nameFr = null;
 
-    /**
-     * Talents du Pokémon
-     */
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAbility::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $abilities;
-
-    /**
-     * Groupes d’œufs
-     */
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonEggGroup::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $eggGroups;
-
-    /**
-     * Famille d’évolution
-     */
     #[ORM\ManyToOne(inversedBy: 'members')]
-    #[ORM\JoinColumn(nullable: true)]
     private ?PokemonFamily $family = null;
 
-    /**
-     * Évolutions sortantes
-     */
-    #[ORM\OneToMany(mappedBy: 'fromPokemon', targetEntity: PokemonEvolution::class)]
-    private Collection $evolutions;
+    // ==================================================
+    // STATS (PER FORM)
+    // ==================================================
 
-    /**
-     * Historique de capture
-     */
+    #[ORM\Column(nullable: true)]
+    private ?int $hp = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $attack = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $defense = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $specialAttack = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $specialDefense = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $speed = null;
+
+    // ==================================================
+    // RELATIONS
+    // ==================================================
+
     #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonCaptureHistory::class)]
     private Collection $captures;
 
-    /**
-     * Sprites (forme par défaut pour l’instant)
-     */
-    #[ORM\OneToOne(mappedBy: 'pokemon', targetEntity: PokemonSprite::class, cascade: ['persist', 'remove'])]
-    private ?PokemonSprite $sprite = null;
+    #[ORM\OneToMany(mappedBy: 'fromPokemon', targetEntity: PokemonEvolution::class)]
+    private Collection $evolutions;
+
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAbility::class)]
+    private Collection $abilities;
 
     #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAttackLevel::class)]
     private Collection $levelAttacks;
@@ -101,42 +84,36 @@ class Pokemon
     #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAttackMachine::class)]
     private Collection $machineAttacks;
 
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonType::class)]
+    private Collection $types;
+
+    #[ORM\ManyToOne(inversedBy: 'pokemons')]
+    private ?Generation $generation = null;
+
+    #[ORM\ManyToOne(inversedBy: 'pokemons')]
+    private ?RegionForm $regionForm = null;
+
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonEggGroup::class)]
+    private Collection $eggGroups;
+
+    #[ORM\OneToOne(mappedBy: 'pokemon', targetEntity: PokemonSprite::class)]
+    private ?PokemonSprite $sprite = null;
+
+
     public function __construct()
     {
-        $this->types = new ArrayCollection();
-        $this->abilities = new ArrayCollection();
-        $this->eggGroups = new ArrayCollection();
-        $this->evolutions = new ArrayCollection();
         $this->captures = new ArrayCollection();
-        $this->levelAttacks = new ArrayCollection();
-        $this->machineAttacks = new ArrayCollection();
+        $this->evolutions = new ArrayCollection();
+        $this->abilities = new ArrayCollection();
     }
+
+    // ==================================================
+    // GETTERS / SETTERS
+    // ==================================================
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getDexNumber(): int
-    {
-        return $this->dexNumber;
-    }
-
-    public function setDexNumber(int $dexNumber): self
-    {
-        $this->dexNumber = $dexNumber;
-        return $this;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-        return $this;
     }
 
     public function getSpecies(): ?PokemonSpecies
@@ -144,95 +121,42 @@ class Pokemon
         return $this->species;
     }
 
-    public function setSpecies(?PokemonSpecies $species): self
+    public function setSpecies(PokemonSpecies $species): self
     {
         $this->species = $species;
         return $this;
     }
 
-    public function getGeneration(): ?Generation
+    public function getNameEn(): string
     {
-        return $this->generation;
+        return $this->nameEn;
     }
 
-    public function setGeneration(?Generation $generation): self
+    public function setNameEn(string $nameEn): self
     {
-        $this->generation = $generation;
+        $this->nameEn = $nameEn;
         return $this;
     }
 
-    /** @return Collection<int, PokemonType> */
-    public function getTypes(): Collection
+    public function getNameFr(): ?string
     {
-        return $this->types;
+        return $this->nameFr;
     }
 
-    public function addType(PokemonType $type): self
+    public function setNameFr(?string $nameFr): self
     {
-        if (!$this->types->contains($type)) {
-            $this->types->add($type);
-            $type->setPokemon($this);
-        }
+        $this->nameFr = $nameFr;
         return $this;
     }
 
-    public function removeType(PokemonType $type): self
+    public function getRegionForm(): ?RegionForm
     {
-        if ($this->types->removeElement($type)) {
-            if ($type->getPokemon() === $this) {
-                $type->setPokemon(null);
-            }
-        }
-        return $this;
+        return $this->regionForm;
     }
 
-    /** @return Collection<int, PokemonAbility> */
-    public function getAbilities(): Collection
+    public function setRegionForm(?RegionForm $regionForm): self
     {
-        return $this->abilities;
-    }
-
-    public function addAbility(PokemonAbility $ability): self
-    {
-        if (!$this->abilities->contains($ability)) {
-            $this->abilities->add($ability);
-            $ability->setPokemon($this);
-        }
-        return $this;
-    }
-
-    public function removeAbility(PokemonAbility $ability): self
-    {
-        if ($this->abilities->removeElement($ability)) {
-            if ($ability->getPokemon() === $this) {
-                $ability->setPokemon(null);
-            }
-        }
-        return $this;
-    }
-
-    /** @return Collection<int, PokemonEggGroup> */
-    public function getEggGroups(): Collection
-    {
-        return $this->eggGroups;
-    }
-
-    public function addEggGroup(PokemonEggGroup $eggGroup): self
-    {
-        if (!$this->eggGroups->contains($eggGroup)) {
-            $this->eggGroups->add($eggGroup);
-            $eggGroup->setPokemon($this);
-        }
-        return $this;
-    }
-
-    public function removeEggGroup(PokemonEggGroup $eggGroup): self
-    {
-        if ($this->eggGroups->removeElement($eggGroup)) {
-            if ($eggGroup->getPokemon() === $this) {
-                $eggGroup->setPokemon(null);
-            }
-        }
+        $this->regionForm = $regionForm;
         return $this;
     }
 
@@ -247,26 +171,73 @@ class Pokemon
         return $this;
     }
 
-    /** @return Collection<int, PokemonEvolution> */
-    public function getEvolutions(): Collection
+    // ==================================================
+    // STATS GETTERS / SETTERS
+    // ==================================================
+
+    public function getHp(): ?int
     {
-        return $this->evolutions;
+        return $this->hp;
     }
 
-    /** @return Collection<int, PokemonCaptureHistory> */
-    public function getCaptures(): Collection
+    public function setHp(?int $hp): self
     {
-        return $this->captures;
+        $this->hp = $hp;
+        return $this;
     }
 
-    public function getSprite(): ?PokemonSprite
+    public function getAttack(): ?int
     {
-        return $this->sprite;
+        return $this->attack;
     }
 
-    public function setSprite(?PokemonSprite $sprite): self
+    public function setAttack(?int $attack): self
     {
-        $this->sprite = $sprite;
+        $this->attack = $attack;
+        return $this;
+    }
+
+    public function getDefense(): ?int
+    {
+        return $this->defense;
+    }
+
+    public function setDefense(?int $defense): self
+    {
+        $this->defense = $defense;
+        return $this;
+    }
+
+    public function getSpecialAttack(): ?int
+    {
+        return $this->specialAttack;
+    }
+
+    public function setSpecialAttack(?int $specialAttack): self
+    {
+        $this->specialAttack = $specialAttack;
+        return $this;
+    }
+
+    public function getSpecialDefense(): ?int
+    {
+        return $this->specialDefense;
+    }
+
+    public function setSpecialDefense(?int $specialDefense): self
+    {
+        $this->specialDefense = $specialDefense;
+        return $this;
+    }
+
+    public function getSpeed(): ?int
+    {
+        return $this->speed;
+    }
+
+    public function setSpeed(?int $speed): self
+    {
+        $this->speed = $speed;
         return $this;
     }
 }

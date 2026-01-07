@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Pokedex\RegionForm;
-use App\Entity\Pokedex\Generation;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -12,10 +11,16 @@ class RegionFormFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $regions = [
+            'Kanto',
+            'Johto',
+            'Hoenn',
+            'Sinnoh',
+            'Unys',
+            'Kalos',
             'Alola',
             'Galar',
-            'Hisui',
             'Paldea',
+            'Hisui',
         ];
 
         foreach ($regions as $name) {

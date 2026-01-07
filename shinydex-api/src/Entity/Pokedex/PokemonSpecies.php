@@ -29,6 +29,24 @@ class PokemonSpecies
     #[ORM\Column(length: 255)]
     private ?string $category = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $descriptionFr = null;
+
+    #[ORM\Column]
+    private bool $isLegendary = false;
+
+    #[ORM\Column]
+    private bool $isMythical = false;
+
+    #[ORM\Column]
+    private bool $hasGenderDifference = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $captureRate = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $baseHappiness = null;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Generation $generation = null;
@@ -95,6 +113,75 @@ class PokemonSpecies
         return $this;
     }
 
+    public function getDescriptionFr(): ?string
+    {
+        return $this->descriptionFr;
+    }
+
+    public function setDescriptionFr(?string $descriptionFr): self
+    {
+        $this->descriptionFr = $descriptionFr;
+        return $this;
+    }
+
+    public function getIsLegendary(): bool
+    {
+        return $this->isLegendary;
+    }
+
+    public function setIsLegendary(bool $isLegendary): self
+    {
+        $this->isLegendary = $isLegendary;
+
+        return $this;
+    }
+
+    public function getIsMythical(): bool
+    {
+        return $this->isMythical;
+    }
+
+    public function setIsMythical(bool $isMythical): self
+    {
+        $this->isMythical = $isMythical;
+
+        return $this;
+    }
+
+    public function getHasGenderDifference(): bool
+    {
+        return $this->hasGenderDifference;
+    }
+
+    public function setHasGenderDifference(bool $hasGenderDifference): self
+    {
+        $this->hasGenderDifference = $hasGenderDifference;
+
+        return $this;
+    }
+
+    public function getCaptureRate(): ?int
+    {
+        return $this->captureRate;
+    }
+
+    public function setCaptureRate(?int $captureRate): self
+    {
+        $this->captureRate = $captureRate;
+        return $this;
+    }
+
+    public function getBaseHappiness(): ?int
+    {
+        return $this->baseHappiness;
+    }
+
+    public function setBaseHappiness(?int $baseHappiness): self
+    {
+        $this->baseHappiness = $baseHappiness;
+        return $this;
+    }
+
     public function getGeneration(): ?Generation
     {
         return $this->generation;
@@ -129,10 +216,8 @@ class PokemonSpecies
     public function removePokemon(Pokemon $pokemon): self
     {
         if ($this->pokemons->removeElement($pokemon)) {
-            if ($pokemon->getSpecies() === $this) {
-                $pokemon->setSpecies(null);
-            }
         }
+
         return $this;
     }
 }

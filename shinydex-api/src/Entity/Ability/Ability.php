@@ -17,10 +17,16 @@ class Ability
     private ?int $id = null;
 
     #[ORM\Column(length: 150, unique: true)]
-    private string $name;
+    private string $apiIdentifier;
 
-    #[ORM\Column(type: 'text')]
-    private string $description;
+    #[ORM\Column(length: 150)]
+    private string $nameFr;
+
+    #[ORM\Column(length: 150)]
+    private string $nameEn;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'ability', targetEntity: PokemonAbility::class, orphanRemoval: true)]
     private Collection $pokemonAbilities;
@@ -35,14 +41,36 @@ class Ability
         return $this->id;
     }
 
-    public function getName(): string
+    public function getApiIdentifier(): string
     {
-        return $this->name;
+        return $this->apiIdentifier;
     }
 
-    public function setName(string $name): self
+    public function setApiIdentifier(string $apiIdentifier): self
     {
-        $this->name = $name;
+        $this->apiIdentifier = $apiIdentifier;
+        return $this;
+    }
+
+    public function getNameFr(): string
+    {
+        return $this->nameFr;
+    }
+
+    public function setNameFr(string $nameFr): self
+    {
+        $this->nameFr = $nameFr;
+        return $this;
+    }
+
+    public function getNameEn(): string
+    {
+        return $this->nameEn;
+    }
+
+    public function setNameEn(string $nameEn): self
+    {
+        $this->nameEn = $nameEn;
         return $this;
     }
 
@@ -51,7 +79,7 @@ class Ability
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
         return $this;

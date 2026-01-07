@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Fight;
 
 use App\Entity\Fight\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Capture;
 
 use App\Entity\Capture\PokemonCaptureHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

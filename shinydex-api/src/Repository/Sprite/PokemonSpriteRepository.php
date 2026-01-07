@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Sprite;
 
 use App\Entity\Sprite\PokemonSprite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

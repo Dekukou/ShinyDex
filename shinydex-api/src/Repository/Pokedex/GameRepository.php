@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Pokedex;
 
 use App\Entity\Pokedex\Game;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

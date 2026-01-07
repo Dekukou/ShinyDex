@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Evolution;
 
 use App\Entity\Evolution\PokemonFamily;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

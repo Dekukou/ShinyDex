@@ -88,4 +88,38 @@ class PokemonEvolution
         $this->requiredItem = $requiredItem;
         return $this;
     }
+
+    public function getMinLevel(): int
+    {
+        return $this->minLevel;
+    }
+
+    public function setMinLevel(int $minLevel): self
+    {
+        $this->minLevel = $minLevel;
+        return $this;
+    }
+
+    public function getTradeRequired(): bool
+    {
+        return $this->tradeRequired;
+    }
+
+    public function setTradeRequired(bool $tradeRequired): self
+    {
+        $this->tradeRequired = $tradeRequired;
+
+        return $this;
+    }
+
+    public function getExtraCondition(): ?string
+    {
+        return $this->extraCondition;
+    }
+
+    public function setExtraCondition(?string $extraCondition): self
+    {
+        $this->extraCondition = $extraCondition;
+        return $this;
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Reproduction;
 
 use App\Entity\Reproduction\PokemonEggGroup;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Capture;
 
 use App\Entity\Capture\HuntSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

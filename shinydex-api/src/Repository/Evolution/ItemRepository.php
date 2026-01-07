@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Evolution;
 
 use App\Entity\Evolution\Item;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

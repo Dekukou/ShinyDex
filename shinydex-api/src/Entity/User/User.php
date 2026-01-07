@@ -3,7 +3,7 @@
 namespace App\Entity\User;
 
 use ApiPlatform\Metadata as Api;
-use App\Repository\UserRepository;
+use App\Repository\User\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

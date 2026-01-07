@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Fight;
 
 use App\Entity\Fight\PokemonAttackLevel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -18,18 +18,22 @@ class Machine
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    private string $code; // CT01, CS02, TM100...
+    private string $name; // CT01, CS02, TM100...
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Generation $generation = null;
 
-    #[ORM\OneToMany(mappedBy: 'machine', targetEntity: PokemonAttackMachine::class, orphanRemoval: true)]
-    private Collection $pokemonAttacks;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Attack $attack = null;
+
+    #[ORM\OneToMany(mappedBy: 'machine', targetEntity: PokemonAttackMachine::class)]
+    private Collection $teaches;
 
     public function __construct()
     {
-        $this->pokemonAttacks = new ArrayCollection();
+        $this->teaches = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -37,14 +41,14 @@ class Machine
         return $this->id;
     }
 
-    public function getCode(): string
+    public function getName(): string
     {
-        return $this->code;
+        return $this->name;
     }
 
-    public function setCode(string $code): self
+    public function setName(string $name): self
     {
-        $this->code = $code;
+        $this->name = $name;
         return $this;
     }
 
@@ -56,6 +60,52 @@ class Machine
     public function setGeneration(?Generation $generation): self
     {
         $this->generation = $generation;
+        return $this;
+    }
+
+    public function getAttack(): ?Attack
+    {
+        return $this->attack;
+    }
+
+    public function setAttack(?Attack $attack): self
+    {
+        $this->attack = $attack;
+        return $this;
+    }
+
+    /** @return Collection<int, PokemonAttackMachine> */
+    public function getTeaches(): Collection
+    {
+        return $this->teaches;
+    }
+
+    public function setTeaches(Collection $teaches): self
+    {
+        // On détache les anciennes relations
+        foreach ($this->teaches as $attackMachine) {
+            if (!$teaches->contains($attackMachine)) {
+                $attackMachine->setMachine(null);
+            }
+        }
+
+        // On attache les nouvelles relations
+        foreach ($teaches as $attackMachine) {
+            $attackMachine->setMachine($this);
+        }
+
+        $this->teaches = $teaches;
+
+        return $this;
+    }
+
+    public function addTeach(PokemonAttackMachine $attackMachine): self
+    {
+        if (!$this->teaches->contains($attackMachine)) {
+            $this->teaches->add($attackMachine);
+            $attackMachine->setMachine($this);
+        }
+
         return $this;
     }
 }

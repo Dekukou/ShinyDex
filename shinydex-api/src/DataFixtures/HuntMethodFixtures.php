@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\HuntMethod;
+use App\Entity\Capture\HuntMethod;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -11,14 +11,14 @@ class HuntMethodFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $methods = [
-            'Masuda Method',
-            'Soft Reset',
+            'Rencontres aléatoires',
+            'Masuda',
             'Poké Radar',
-            'Chain Fishing',
-            'Random Encounter',
-            'Egg Breeding',
-            'Mass Outbreak',
-            'Sandwich Method',
+            'Chaîne SOS',
+            'Œuf',
+            'Légendes Arceus',
+            'Safari',
+            'DexNav',
         ];
 
         foreach ($methods as $name) {

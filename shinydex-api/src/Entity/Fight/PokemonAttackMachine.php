@@ -2,13 +2,20 @@
 
 namespace App\Entity\Fight;
 
-use ApiPlatform\Metadata as Api;
-use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Pokedex\Pokemon;
+use Doctrine\ORM\Mapping as ORM;
 
-#[Api\ApiResource]
+#[ApiResource]
 #[ORM\Entity]
-#[ORM\UniqueConstraint(name: 'uniq_pokemon_machine_attack', columns: ['pokemon_id', 'machine_id'])]
+#[ORM\Table(
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(
+            name: 'pokemon_attack_machine_unique',
+            columns: ['pokemon_id', 'attack_id', 'machine_id']
+        )
+    ]
+)]
 class PokemonAttackMachine
 {
     #[ORM\Id]
@@ -21,10 +28,9 @@ class PokemonAttackMachine
     private ?Pokemon $pokemon = null;
 
     #[ORM\ManyToOne(inversedBy: 'learnedByMachine')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Attack $attack = null;
 
-    #[ORM\ManyToOne(inversedBy: 'pokemonAttacks')]
+    #[ORM\ManyToOne(inversedBy: 'teaches')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Machine $machine = null;
 

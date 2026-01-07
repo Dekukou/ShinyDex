@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Ball;
+use App\Entity\Capture\Ball;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -11,58 +11,52 @@ class BallFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $balls = [
+            // =========================
+            // Balls classiques
+            // =========================
+            ['Poké Ball', true, false],
+            ['Super Ball', true, false],
+            ['Hyper Ball', true, false],
+            ['Master Ball', true, false],
+            ['Safari Ball', true, false],
+            ['Filet Ball', true, false],
+            ['Faiblo Ball', true, false],
+            ['Rapide Ball', true, false],
+            ['Chrono Ball', true, false],
+            ['Honor Ball', true, false],
+            ['Luxe Ball', true, false],
+            ['Copain Ball', true, false],
+            ['Appât Ball', true, false],
+            ['Niveau Ball', true, false],
+            ['Masse Ball', true, false],
+            ['Speed Ball', true, false],
+            ['Sombre Ball', true, false],
+            ['Rêve Ball', true, false],
 
-            // 🟥 Série principale (utilisables)
-            ['Poké Ball', 1.0, true, false],
-            ['Great Ball', 1.5, true, false],
-            ['Ultra Ball', 2.0, true, false],
-            ['Master Ball', 255.0, true, false],
-            ['Premier Ball', 1.0, true, false],
-            ['Luxury Ball', 1.0, true, false],
-            ['Heal Ball', 1.0, true, false],
-            ['Net Ball', 3.5, true, false],
-            ['Dive Ball', 3.5, true, false],
-            ['Nest Ball', 1.0, true, false],
-            ['Repeat Ball', 3.5, true, false],
-            ['Timer Ball', 4.0, true, false],
-            ['Quick Ball', 5.0, true, false],
-            ['Dusk Ball', 3.0, true, false],
-            ['Level Ball', 8.0, true, false],
-            ['Lure Ball', 5.0, true, false],
-            ['Moon Ball', 4.0, true, false],
-            ['Friend Ball', 1.0, true, false],
-            ['Love Ball', 8.0, true, false],
-            ['Heavy Ball', 1.0, true, false],
-            ['Fast Ball', 4.0, true, false],
-            ['Sport Ball', 1.0, true, false],
-            ['Safari Ball', 1.5, true, false],
-            ['Dream Ball', 4.0, true, false],
-            ['Beast Ball', 5.0, true, false],
-            ['Cherish Ball', 1.0, true, false],
+            // Non utilisables
+            ['Mémoire Ball', false, false],
+            ['Étrange Ball', false, false],
 
-            // ⚠️ Inutilisables
-            ['Memory Ball', 1.0, false, false],
-            ['Strange Ball', 1.0, false, false],
-
-            // 🟣 Légendes Pokémon : Arceus (exclusives)
-            ['Heavy Ball (PLA)', 2.0, true, true],
-            ['Leaden Ball', 3.0, true, true],
-            ['Gigaton Ball', 4.0, true, true],
-            ['Feather Ball', 2.0, true, true],
-            ['Wing Ball', 3.0, true, true],
-            ['Jet Ball', 4.0, true, true],
-            ['Origin Ball', 255.0, true, true],
-            ['Strange Feather Ball', 1.0, true, true],
-            ['Strange Wing Ball', 1.0, true, true],
-            ['Strange Jet Ball', 1.0, true, true],
+            // =========================
+            // Pokémon Legends Arceus
+            // =========================
+            ['Poké Ball (Hisui)', true, true],
+            ['Super Ball (Hisui)', true, true],
+            ['Hyper Ball (Hisui)', true, true],
+            ['Méga Ball (Hisui)', true, true],
+            ['Gigaton Ball', true, true],
+            ['Ultra Ball (Hisui)', true, true],
+            ['Méga Ball Lourde', true, true],
+            ['Gigaton Lourde', true, true],
+            ['Ultra Lourde', true, true],
+            ['Jet Ball', true, true],
         ];
 
-        foreach ($balls as [$name, $rate, $usable, $plaOnly]) {
+        foreach ($balls as [$name, $isUsable, $isLegendArceus]) {
             $ball = new Ball();
             $ball->setName($name);
-            $ball->setCatchRateBonus($rate);
-            $ball->setIsUsable($usable);
-            $ball->setIsLegendsArceusOnly($plaOnly);
+            $ball->setIsUsable($isUsable);
+            $ball->setIsLegendArceus($isLegendArceus);
 
             $manager->persist($ball);
         }

@@ -2,13 +2,20 @@
 
 namespace App\Entity\Fight;
 
-use ApiPlatform\Metadata as Api;
-use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Pokedex\Pokemon;
+use Doctrine\ORM\Mapping as ORM;
 
-
-#[Api\ApiResource]
+#[ApiResource]
 #[ORM\Entity]
+#[ORM\Table(
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(
+            name: 'pokemon_attack_level_unique',
+            columns: ['pokemon_id', 'attack_id', 'level']
+        )
+    ]
+)]
 class PokemonAttackLevel
 {
     #[ORM\Id]
@@ -21,7 +28,6 @@ class PokemonAttackLevel
     private ?Pokemon $pokemon = null;
 
     #[ORM\ManyToOne(inversedBy: 'learnedByLevel')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Attack $attack = null;
 
     #[ORM\Column]
