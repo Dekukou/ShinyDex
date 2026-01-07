@@ -6,6 +6,8 @@
 .env.*
 !.env.example
 
+docker/mysql/data/
+
 # Symfony (API)
 shinydex-api/var/
 shinydex-api/vendor/
