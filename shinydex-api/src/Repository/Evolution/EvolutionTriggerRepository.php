@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Health;
+use App\Entity\Evolution\EvolutionTrigger;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Health>
+ * @extends ServiceEntityRepository<EvolutionTrigger>
  */
-class HealthRepository extends ServiceEntityRepository
+class EvolutionTriggerRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Health::class);
+        parent::__construct($registry, EvolutionTrigger::class);
     }
 
     //    /**
-    //     * @return Health[] Returns an array of Health objects
+    //     * @return EvolutionTrigger[] Returns an array of EvolutionTrigger objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
+    //        return $this->createQueryBuilder('e')
+    //            ->andWhere('e.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('h.id', 'ASC')
+    //            ->orderBy('e.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Health
+    //    public function findOneBySomeField($value): ?EvolutionTrigger
     //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
+    //        return $this->createQueryBuilder('e')
+    //            ->andWhere('e.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

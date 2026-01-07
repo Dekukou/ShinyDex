@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\Health;
+use App\Entity\Capture\HuntMethod;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Health>
+ * @extends ServiceEntityRepository<HuntMethod>
  */
-class HealthRepository extends ServiceEntityRepository
+class HuntMethodRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Health::class);
+        parent::__construct($registry, HuntMethod::class);
     }
 
     //    /**
-    //     * @return Health[] Returns an array of Health objects
+    //     * @return HuntMethod[] Returns an array of HuntMethod objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class HealthRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Health
+    //    public function findOneBySomeField($value): ?HuntMethod
     //    {
     //        return $this->createQueryBuilder('h')
     //            ->andWhere('h.exampleField = :val')

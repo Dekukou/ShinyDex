@@ -8,6 +8,13 @@ RUN apt-get update && apt-get install -y \
 # --- Composer ---
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ARG UID
+ARG GID
+
+RUN groupadd -g ${GID} appuser \
+ && useradd -u ${UID} -g appuser -m appuser
+
+USER appuser
 WORKDIR /var/www/html
 
 # --- Copier les fichiers composer ---
@@ -30,5 +37,10 @@ RUN chown -R www-data:www-data var \
 RUN composer run-script post-install-cmd || true
 
 EXPOSE 9000
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["php-fpm"]

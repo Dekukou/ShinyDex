@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Health;
+use App\Entity\Pokedex\RegionForm;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Health>
+ * @extends ServiceEntityRepository<RegionForm>
  */
-class HealthRepository extends ServiceEntityRepository
+class RegionFormRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Health::class);
+        parent::__construct($registry, RegionForm::class);
     }
 
     //    /**
-    //     * @return Health[] Returns an array of Health objects
+    //     * @return RegionForm[] Returns an array of RegionForm objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
+    //        return $this->createQueryBuilder('r')
+    //            ->andWhere('r.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('h.id', 'ASC')
+    //            ->orderBy('r.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Health
+    //    public function findOneBySomeField($value): ?RegionForm
     //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
+    //        return $this->createQueryBuilder('r')
+    //            ->andWhere('r.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

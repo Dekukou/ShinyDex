@@ -2,6 +2,9 @@ services:
   api:
     build:
       context: ./shinydex-api
+      args:
+        UID: ${UID}
+        GID: ${GID}
     container_name: shinydex-api
     volumes:
       - ./shinydex-api:/var/www/html
@@ -50,7 +53,7 @@ services:
       MYSQL_USER: shinydex
       MYSQL_PASSWORD: shinydex
     volumes:
-      - ./docker/mysql/data:/var/lib/mysql
+      - db_data:/var/lib/mysql   # <- volume Docker dédié
     ports:
       - "3306:3306"
     networks:
@@ -77,3 +80,4 @@ networks:
 
 volumes:
   node_modules_app:
+  db_data:
