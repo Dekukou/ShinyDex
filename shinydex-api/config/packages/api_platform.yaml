@@ -1,0 +1,10 @@
+api_platform:
+    title: 'ShinyDex API'
+    version: '1.0.0'
+
+    formats:
+        json:
+            mime_types: ['application/json']
+
+    defaults:
+        stateless: true

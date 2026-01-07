@@ -1,0 +1,74 @@
+services:
+  api:
+    build:
+      context: ./shinydex-api
+    container_name: shinydex-api
+    volumes:
+      - ./shinydex-api:/var/www/html
+    depends_on:
+      - db
+    environment:
+     DATABASE_URL: "mysql://shinydex:shinydex@db:3306/shinydex?serverVersion=8.0"
+    networks:
+      - shinydex
+
+  nginx:
+    image: nginx:alpine
+    container_name: shinydex-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./shinydex-api:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api
+    networks:
+      - shinydex
+
+  app:
+    build:
+      context: ./shinydex-app
+    container_name: shinydex-app
+    volumes:
+      - ./shinydex-app:/app
+      - ./docker/node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev -- --host
+    networks:
+      - shinydex
+
+  db:
+    image: mysql:8.0
+    container_name: shinydex-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: shinydex
+      MYSQL_USER: shinydex
+      MYSQL_PASSWORD: shinydex
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - shinydex
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: shinydex-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: shinydex
+      PMA_PASSWORD: shinydex
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - shinydex
+
+networks:
+  shinydex:
+    driver: bridge

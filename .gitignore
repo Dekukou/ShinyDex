@@ -1,0 +1,22 @@
+# Global
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Symfony (API)
+shinydex-api/var/
+shinydex-api/vendor/
+
+# React (Front)
+shinydex-app/node_modules/
+shinydex-app/dist/
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
