@@ -39,14 +39,14 @@ class ImportAllCommand extends Command
             // 'pokeapi:import:types',
             // 'pokeapi:import:egg-groups',
             // 'pokeapi:import:abilities',
-            // 'app:import:items',
+            // 'app:import:items', // TODO trop d'objets, je veux que ceux dévolution
             // 'pokeapi:import:attacks',
             // 'app:import:generations',
             // 'pokeapi:import:pokemon-species',
             // 'pokeapi:import:pokemons',
-            'pokeapi:import:machines',
-            'app:import:evolutions',
-            'app:import:sprites',
+            // 'pokeapi:import:machines', TODO améliorer pour rajouter un gameVersion
+            // 'app:import:evolutions',
+            'app:import:pokemon-sprites',
         ];
 
         foreach ($commands as $commandName) {

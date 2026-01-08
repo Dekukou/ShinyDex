@@ -11,6 +11,9 @@ docker/mysql/data/
 # Symfony (API)
 shinydex-api/var/
 shinydex-api/vendor/
+shinydex-api/public/sprites/
+shinydex-api/public/sprites/**
+
 
 # React (Front)
 shinydex-app/node_modules/

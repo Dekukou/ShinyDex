@@ -94,7 +94,7 @@ class PokemonEvolution
         return $this->minLevel;
     }
 
-    public function setMinLevel(int $minLevel): self
+    public function setMinLevel(?int $minLevel): self
     {
         $this->minLevel = $minLevel;
         return $this;

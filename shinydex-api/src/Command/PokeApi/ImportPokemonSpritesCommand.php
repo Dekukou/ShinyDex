@@ -46,7 +46,7 @@ class ImportPokemonSpritesCommand extends Command
         $pokemons = $this->em->getRepository(Pokemon::class)->findAll();
 
         foreach ($pokemons as $pokemon) {
-            $data = $this->api->get('/pokemon/' . $pokemon->getId());
+            $data = $this->api->get('/pokemon/' . $pokemon->getNameEn());
 
             $sprites = $data['sprites'];
             if (!$sprites['front_default']) {
@@ -87,6 +87,7 @@ class ImportPokemonSpritesCommand extends Command
             $name = $pokemon->getNameFr();
             $this->em->persist($spriteEntity);
             $output->writeln("✔ Sprite: $name");
+            usleep(200_000);
         }
 
         if (!$dryRun) {
@@ -105,15 +106,24 @@ class ImportPokemonSpritesCommand extends Command
         }
 
         $path = $dir . '/' . $filename;
-        file_put_contents($path, file_get_contents($url));
 
-        // Tentative de suppression du fond blanc
-        try {
-            $this->imageProcessor->removeWhiteBackground($path);
-        } catch (\Throwable) {
-            // volontairement silencieux
+        // ✅ Ne rien faire si le fichier existe déjà
+        if (file_exists($path)) {
+            return str_replace('public/', '', $path);
         }
 
-        return str_replace('public/', '', $path);
+        try {
+            file_put_contents($path, file_get_contents($url));
+
+            try {
+                $this->imageProcessor->removeWhiteBackground($path);
+            } catch (\Throwable) {
+                // silencieux volontairement
+            }
+
+            return str_replace('public/', '', $path);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -29,20 +29,28 @@ class ImportItemsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
+            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit species')
             ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
+        $limit  = $input->getOption('limit');
+        $offset = (int) ($input->getOption('offset') ?? 0);
         $dryRun = $input->getOption('dry-run');
+
+        $output->writeln('<info>Importing evolution items...</info>');
+
         $items = $this->api->get('/item?limit=2000');
 
         foreach ($items['results'] as $entry) {
             $data = $this->api->getByUrl($entry['url']);
+
+            // ✅ FILTER: only evolution items
+            if (($data['category']['name'] ?? null) !== 'evolution') {
+                continue;
+            }
 
             $item = $this->em->getRepository(Item::class)
                 ->findOneBy(['apiName' => $data['name']]) ?? new Item();
@@ -56,15 +64,18 @@ class ImportItemsCommand extends Command
                     $this->translator->getName($data['names'], 'fr')
                 );
 
-            $name = $this->translator->getName($data['names'], 'fr');
-
             $this->em->persist($item);
-            $output->writeln("✔ Items: $name");
+
+            $output->writeln(
+                sprintf('✔ Evolution item: %s', $item->getNameFr() ?? $item->getApiName())
+            );
         }
 
         if (!$dryRun) {
             $this->em->flush();
         }
+
+        $output->writeln('<info>✔ Evolution items imported successfully</info>');
 
         return Command::SUCCESS;
     }

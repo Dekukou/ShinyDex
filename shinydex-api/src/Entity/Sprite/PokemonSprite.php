@@ -39,8 +39,8 @@ class PokemonSprite
     /**
      * Sprite face shiny (obligatoire)
      */
-    #[ORM\Column(length: 255)]
-    private string $frontShiny;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $frontShiny = null;
 
     /**
      * Sprite face shiny femelle (si existe)
@@ -106,7 +106,7 @@ class PokemonSprite
         return $this->frontShiny;
     }
 
-    public function setFrontShiny(string $frontShiny): self
+    public function setFrontShiny(?string $frontShiny): self
     {
         $this->frontShiny = $frontShiny;
         return $this;
