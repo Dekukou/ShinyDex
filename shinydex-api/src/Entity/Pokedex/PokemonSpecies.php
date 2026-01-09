@@ -2,13 +2,29 @@
 
 namespace App\Entity\Pokedex;
 
-use ApiPlatform\Metadata as Api;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use App\Dto\PokemonSpeciesReadDto;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Pokedex\Pokemon;
+use App\State\PokemonSpecies\PokemonSpeciesItemProvider;
+use App\State\PokemonSpecies\PokemonSpeciesCollectionProvider;
 
-#[Api\ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(
+            provider: PokemonSpeciesItemProvider::class,
+            output: PokemonSpeciesReadDto::class
+        ),
+        new GetCollection(
+            provider: PokemonSpeciesCollectionProvider::class,
+            output: PokemonSpeciesReadDto::class
+        )
+    ]
+)]
 #[ORM\Entity]
 class PokemonSpecies
 {

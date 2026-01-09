@@ -101,7 +101,7 @@ class PokemonSprite
         return $this;
     }
 
-    public function getFrontShiny(): string
+    public function getFrontShiny(): ?string
     {
         return $this->frontShiny;
     }

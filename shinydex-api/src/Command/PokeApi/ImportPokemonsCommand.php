@@ -101,7 +101,9 @@ class ImportPokemonsCommand extends Command
                     )
                     ->setRegionForm($regionForm)
                     ->setGeneration($generation)
-                    ->setIsDefault($pokemonApi['is_default']);
+                    ->setIsDefault($pokemonApi['is_default'])
+                    ->setIsMega(str_contains($pokemonApi['name'], "-mega"))
+                    ->setIsGmax(str_contains($pokemonApi['name'], "-gmax"));
 
                 foreach ($pokemonApi['stats'] as $stat) {
                     $this->mapStat($pokemon, $stat);

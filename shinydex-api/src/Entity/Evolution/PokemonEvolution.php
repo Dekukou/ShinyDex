@@ -89,7 +89,7 @@ class PokemonEvolution
         return $this;
     }
 
-    public function getMinLevel(): int
+    public function getMinLevel(): ?int
     {
         return $this->minLevel;
     }
@@ -100,7 +100,7 @@ class PokemonEvolution
         return $this;
     }
 
-    public function getTradeRequired(): bool
+    public function getTradeRequired(): ?bool
     {
         return $this->tradeRequired;
     }

@@ -25,9 +25,6 @@ class ImportGenerationsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
-        $dryRun = $input->getOption('dry-run');
         $data = $this->client->get('generation?limit=20');
 
         foreach ($data['results'] as $genData) {

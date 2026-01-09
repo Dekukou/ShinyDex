@@ -31,9 +31,6 @@ class ImportGamesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
-        $dryRun = $input->getOption('dry-run');
         $versions = $this->client->get('version?limit=200');
 
         foreach ($versions['results'] as $versionData) {

@@ -3,6 +3,9 @@
 namespace App\Entity\Pokedex;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use App\Dto\PokemonReadDto;
 use App\Entity\Evolution\PokemonEvolution;
 use App\Entity\Evolution\PokemonFamily;
 use App\Entity\Ability\PokemonAbility;
@@ -12,11 +15,24 @@ use App\Entity\Move\PokemonMove;
 use App\Entity\Pokedex\RegionForm;
 use App\Entity\Reproduction\EggGroup;
 use App\Entity\Sprite\PokemonSprite;
+use App\State\PokemonCollectionProvider;
+use App\State\PokemonItemProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(
+            provider: PokemonItemProvider::class,
+            output: PokemonReadDto::class
+        ),
+        new GetCollection(
+            provider: PokemonCollectionProvider::class,
+            output: PokemonReadDto::class,
+        )
+    ]
+)]
 #[ORM\Entity]
 class Pokemon
 {
@@ -28,10 +44,6 @@ class Pokemon
     // ==================================================
     // CORE
     // ==================================================
-
-    #[ORM\ManyToOne(inversedBy: 'pokemons')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?PokemonSpecies $species = null;
 
     #[ORM\Column(length: 150, unique: true)]
     private string $formKey;
@@ -45,8 +57,11 @@ class Pokemon
     #[ORM\Column()]
     private bool $isDefault = true;
 
-    #[ORM\ManyToOne(inversedBy: 'members')]
-    private ?PokemonFamily $family = null;
+    #[ORM\Column()]
+    private bool $isMega = false;
+
+    #[ORM\Column()]
+    private bool $isGmax = false;
 
     // ==================================================
     // STATS (PER FORM)
@@ -74,17 +89,33 @@ class Pokemon
     // RELATIONS
     // ==================================================
 
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonCaptureHistory::class)]
-    private Collection $captures;
+    #[ORM\ManyToOne(inversedBy: 'pokemons')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?PokemonSpecies $species = null;
+
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonType::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['slot' => 'ASC'])]
+    private Collection $types;
+
+    #[ORM\OneToOne(mappedBy: 'pokemon', targetEntity: PokemonSprite::class, cascade: ['persist', 'remove'])]
+    private ?PokemonSprite $sprite = null;
+
+    #[ORM\ManyToOne(inversedBy: 'members')]
+    private ?PokemonFamily $family = null;
+
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAbility::class)]
+    #[ORM\OrderBy(['slot' => 'ASC'])]
+    private Collection $abilities;
 
     #[ORM\OneToMany(mappedBy: 'fromPokemon', targetEntity: PokemonEvolution::class)]
     private Collection $evolutions;
 
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAbility::class)]
-    private Collection $abilities;
-
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonType::class)]
-    private Collection $types;
+    #[ORM\OneToMany(
+        mappedBy: 'pokemon',
+        targetEntity: PokemonMove::class,
+        orphanRemoval: true
+    )]
+    private Collection $pokemonMoves;
 
     #[ORM\ManyToOne(inversedBy: 'pokemons')]
     private ?Generation $generation = null;
@@ -96,24 +127,16 @@ class Pokemon
     #[ORM\JoinTable(name: 'pokemon_egg_group')]
     private Collection $eggGroups;
 
-    #[ORM\OneToOne(mappedBy: 'pokemon', targetEntity: PokemonSprite::class)]
-    private ?PokemonSprite $sprite = null;
-
-    #[ORM\OneToMany(
-        mappedBy: 'pokemon',
-        targetEntity: PokemonMove::class,
-        orphanRemoval: true
-    )]
-    private Collection $pokemonMoves;
-
-
+    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonCaptureHistory::class)]
+    private Collection $captures;
 
     public function __construct()
     {
-        $this->captures = new ArrayCollection();
-        $this->evolutions = new ArrayCollection();
+        $this->types = new ArrayCollection();
         $this->abilities = new ArrayCollection();
+        $this->evolutions = new ArrayCollection();
         $this->eggGroups = new ArrayCollection();
+        $this->captures = new ArrayCollection();
     }
 
     // ==================================================
@@ -123,17 +146,6 @@ class Pokemon
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getSpecies(): ?PokemonSpecies
-    {
-        return $this->species;
-    }
-
-    public function setSpecies(PokemonSpecies $species): self
-    {
-        $this->species = $species;
-        return $this;
     }
 
     public function getFormKey(): string
@@ -181,36 +193,27 @@ class Pokemon
         return $this;
     }
 
-    public function getRegionForm(): ?RegionForm
+    public function isMega(): bool
     {
-        return $this->regionForm;
+        return $this->isMega;
     }
 
-    public function setRegionForm(?RegionForm $regionForm): self
+    public function setIsMega(bool $isMega): self
     {
-        $this->regionForm = $regionForm;
+        $this->isMega = $isMega;
+
         return $this;
     }
 
-    public function getFamily(): ?PokemonFamily
+    public function isGmax(): bool
     {
-        return $this->family;
+        return $this->isGmax;
     }
 
-    public function setFamily(?PokemonFamily $family): self
+    public function setIsGmax(bool $isGmax): self
     {
-        $this->family = $family;
-        return $this;
-    }
+        $this->isGmax = $isGmax;
 
-    public function getGeneration(): ?Generation
-    {
-        return $this->generation;
-    }
-
-    public function setGeneration(?Generation $generation): self
-    {
-        $this->generation = $generation;
         return $this;
     }
 
@@ -284,11 +287,103 @@ class Pokemon
         return $this;
     }
 
-    // Relations
+    // ==================================================
+    // RELATIONS
+    // ==================================================
 
-    /**
-     * @return Collection<int, EggGroup>
-     */
+    public function getSpecies(): ?PokemonSpecies
+    {
+        return $this->species;
+    }
+
+    public function setSpecies(PokemonSpecies $species): self
+    {
+        $this->species = $species;
+        return $this;
+    }
+
+    public function getTypes(): Collection
+    {
+        return $this->types;
+    }
+
+    public function addType(PokemonType $pokemonType): self
+    {
+        if (!$this->types->contains($pokemonType)) {
+            $this->types->add($pokemonType);
+            $pokemonType->setPokemon($this);
+        }
+
+        return $this;
+    }
+
+    public function removeType(PokemonType $pokemonType): self
+    {
+        if ($this->types->removeElement($pokemonType)) {
+            if ($pokemonType->getPokemon() === $this) {
+                $pokemonType->setPokemon(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getSprite(): ?PokemonSprite
+    {
+        return $this->sprite;
+    }
+
+    public function setSprite(?PokemonSprite $sprite): self
+    {
+        $this->sprite = $sprite;
+        return $this;
+    }
+
+    public function getFamily(): ?PokemonFamily
+    {
+        return $this->family;
+    }
+
+    public function setFamily(?PokemonFamily $family): self
+    {
+        $this->family = $family;
+        return $this;
+    }
+
+    public function getAbilities(): Collection
+    {
+        return $this->abilities;
+    }
+
+    // ? Evolutions ?
+
+    public function getPokemonMoves(): Collection
+    {
+        return $this->pokemonMoves;
+    }
+
+    public function getGeneration(): ?Generation
+    {
+        return $this->generation;
+    }
+
+    public function setGeneration(?Generation $generation): self
+    {
+        $this->generation = $generation;
+        return $this;
+    }
+
+    public function getRegionForm(): ?RegionForm
+    {
+        return $this->regionForm;
+    }
+
+    public function setRegionForm(?RegionForm $regionForm): self
+    {
+        $this->regionForm = $regionForm;
+        return $this;
+    }
+
     public function getEggGroups(): Collection
     {
         return $this->eggGroups;
@@ -312,8 +407,5 @@ class Pokemon
         return $this;
     }
 
-    public function getPokemonMoves(): Collection
-    {
-        return $this->pokemonMoves;
-    }
+    // ? Capture ?
 }
