@@ -11,7 +11,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'pokeapi:import:machines',
@@ -28,19 +27,8 @@ class ImportMachinesCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL)
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL)
-            ->addOption('dry-run', null, InputOption::VALUE_NONE);
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $dryRun = $input->getOption('dry-run');
-        $output->writeln('<info>Importing machines...</info>');
-
         $list = $this->api->get('/machine?limit=2000');
 
         foreach ($list['results'] as $entry) {
@@ -88,9 +76,7 @@ class ImportMachinesCommand extends Command
             $output->writeln("✔ Machine: $machineName ({$versionGroup->getApiName()})");
         }
 
-        if (!$dryRun) {
-            $this->em->flush();
-        }
+        $this->em->flush();
 
         $output->writeln('<info>✔ Machines imported</info>');
         return Command::SUCCESS;

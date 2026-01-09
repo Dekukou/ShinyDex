@@ -11,7 +11,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'pokeapi:import:pokemon-species',
@@ -27,19 +26,8 @@ class ImportPokemonSpeciesCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
-        $dryRun = $input->getOption('dry-run');
         $list = $this->api->get('pokemon-species?limit=2000');
 
         foreach ($list['results'] as $result) {
@@ -82,9 +70,8 @@ class ImportPokemonSpeciesCommand extends Command
             $output->writeln("✔ Species: $name");
         }
 
-        if (!$dryRun) {
-            $this->em->flush();
-        }
+        $this->em->flush();
+
         return Command::SUCCESS;
     }
 }

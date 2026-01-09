@@ -18,7 +18,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'pokeapi:import:pokemons',
@@ -34,19 +33,8 @@ class ImportPokemonsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
-        $dryRun = $input->getOption('dry-run');
         $output->writeln('<info>Starting Pokémon import...</info>');
 
         $speciesRepo = $this->em->getRepository(PokemonSpecies::class);
@@ -130,9 +118,7 @@ class ImportPokemonsCommand extends Command
                 $output->writeln("✔ Pokemon: $name");
             }
 
-            if (!$dryRun) {
-                $this->em->flush();
-            }
+            $this->em->flush();
             $this->em->clear();
         }
 
@@ -196,7 +182,7 @@ class ImportPokemonsCommand extends Command
         $abilityCache = [];
 
         foreach ($pokemonData['abilities'] as $abilityData) {
-            if (!isset($abilityData['ability']['name'])) {
+            if (!isset($abilityCache[$abilityData['ability']['name']])) {
                 $ability = $abilityRepo->findOneBy([
                     'apiName' => $abilityData['ability']['name']
                 ]);
@@ -208,7 +194,7 @@ class ImportPokemonsCommand extends Command
                     ->setIsHidden($abilityData['is_hidden'])
                     ->setSlot($abilityData['slot']);
 
-                $abilityCache[$abilityData['ability']['name']];
+                $abilityCache[$abilityData['ability']['name']] = true;
                 $this->em->persist($pokemonAbility);
             }
         }

@@ -2,13 +2,11 @@
 
 namespace App\Command\PokeApi;
 
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Process\Process;
 
 #[AsCommand(
     name: 'app:import:all',
@@ -16,25 +14,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ImportAllCommand extends Command
 {
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit number of items')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no database write)');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = $input->getOption('limit');
-        $offset = $input->getOption('offset');
-        $dryRun = $input->getOption('dry-run');
-
-        $io = new SymfonyStyle($input, $output);
-        $application = $this->getApplication();
-
-        $io->title('🚀 Global Pokédex import');
-
         $commands = [
             'pokeapi:import:types',
             'pokeapi:import:egg-groups',
@@ -52,21 +33,22 @@ class ImportAllCommand extends Command
             'app:import:pokemon-sprites',
         ];
 
-        foreach ($commands as $commandName) {
-            $io->section("▶ $commandName");
+        foreach ($commands as $command) {
+            $output->writeln("\n▶ Running <info>$command</info>");
 
-            $command = $application->find($commandName);
+            $process = new Process(['php', 'bin/console', $command]);
+            $process->setTimeout(null);
+            $process->run(function ($type, $buffer) use ($output) {
+                $output->write($buffer);
+            });
 
-            $arguments = new ArrayInput([
-                '--limit' => $limit,
-                '--offset' => $offset,
-                '--dry-run' => $dryRun,
-            ]);
-
-            $command->run($arguments, $output);
+            if (!$process->isSuccessful()) {
+                $output->writeln("<error>❌ Command failed: $command</error>");
+                return Command::FAILURE;
+            }
         }
 
-        $io->success('All imports completed');
+        $output->writeln("\n✅ <info>All imports completed successfully</info>");
 
         return Command::SUCCESS;
     }

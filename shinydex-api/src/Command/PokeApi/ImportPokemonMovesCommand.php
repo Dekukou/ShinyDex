@@ -12,7 +12,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'app:import:pokemon-moves',
@@ -20,21 +19,11 @@ use Symfony\Component\Console\Input\InputOption;
 )]
 class ImportPokemonMovesCommand extends Command
 {
-    private const BATCH_SIZE = 100;
-
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly PokeApiClient $client
     ) {
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -47,7 +36,6 @@ class ImportPokemonMovesCommand extends Command
         $pokemonRepo = $this->em->getRepository(Pokemon::class);
         $attackRepo = $this->em->getRepository(Attack::class);
         $versionGroupRepo = $this->em->getRepository(VersionGroup::class);
-        $pokemonMoveRepo = $this->em->getRepository(PokemonMove::class);
 
         $batchSize = 50;
         $i = 0;

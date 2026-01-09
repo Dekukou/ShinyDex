@@ -10,7 +10,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'app:import:items',
@@ -26,20 +25,8 @@ class ImportItemsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit species')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit  = $input->getOption('limit');
-        $offset = (int) ($input->getOption('offset') ?? 0);
-        $dryRun = $input->getOption('dry-run');
-
         $output->writeln('<info>Importing evolution items...</info>');
 
         $items = $this->api->get('/item?limit=2000');
@@ -71,9 +58,7 @@ class ImportItemsCommand extends Command
             );
         }
 
-        if (!$dryRun) {
-            $this->em->flush();
-        }
+        $this->em->flush();
 
         $output->writeln('<info>✔ Evolution items imported successfully</info>');
 

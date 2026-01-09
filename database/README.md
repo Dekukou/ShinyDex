@@ -50,11 +50,11 @@ git commit -m "chore(db): update pokemon_move dump"
 
 ### 📥 Restaurer le dump
 
-````bash
+```bash
 docker exec -i mysql \
   mysql -u root -p shinydex \
-  < dumps/pokemon_move.sql```
-````
+  < dumps/pokemon_move.sql
+```
 
 ---
 
