@@ -49,7 +49,8 @@ class ImportTypesCommand extends Command
             $type = $this->em->getRepository(Type::class)
                 ->findOneBy(['name' => $name]) ?? new Type();
 
-            $type->setName($name);
+            $type->setApiName($result['name'])
+                ->setName($name);
 
             $this->em->persist($type);
             $output->writeln("✔ Type: $name");

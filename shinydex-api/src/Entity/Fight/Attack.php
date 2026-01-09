@@ -45,18 +45,6 @@ class Attack
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    #[ORM\OneToMany(mappedBy: 'attack', targetEntity: PokemonAttackLevel::class)]
-    private Collection $learnedByLevel;
-
-    #[ORM\OneToMany(mappedBy: 'attack', targetEntity: PokemonAttackMachine::class)]
-    private Collection $learnedByMachine;
-
-    public function __construct()
-    {
-        $this->learnedByLevel = new ArrayCollection();
-        $this->learnedByMachine = new ArrayCollection();
-    }
-
     public function getId(): ?int
     {
         return $this->id;

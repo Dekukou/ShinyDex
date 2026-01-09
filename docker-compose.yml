@@ -54,6 +54,7 @@ services:
       MYSQL_PASSWORD: shinydex
     volumes:
       - db_data:/var/lib/mysql   # <- volume Docker dédié
+      - ./database/dumps:/dumps
     ports:
       - "3306:3306"
     networks:

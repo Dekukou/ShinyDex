@@ -17,7 +17,7 @@ class Ability
     private ?int $id = null;
 
     #[ORM\Column(length: 150, unique: true)]
-    private string $apiIdentifier;
+    private string $apiName;
 
     #[ORM\Column(length: 150)]
     private string $nameFr;
@@ -41,14 +41,14 @@ class Ability
         return $this->id;
     }
 
-    public function getApiIdentifier(): string
+    public function getApiName(): string
     {
-        return $this->apiIdentifier;
+        return $this->apiName;
     }
 
-    public function setApiIdentifier(string $apiIdentifier): self
+    public function setApiName(string $apiName): self
     {
-        $this->apiIdentifier = $apiIdentifier;
+        $this->apiName = $apiName;
         return $this;
     }
 

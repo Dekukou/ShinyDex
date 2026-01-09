@@ -3,6 +3,7 @@
 namespace App\Entity\Reproduction;
 
 use ApiPlatform\Metadata as Api;
+use App\Entity\Pokedex\Pokemon;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -18,19 +19,34 @@ class EggGroup
     private ?int $id = null;
 
     #[ORM\Column(length: 100, unique: true)]
+    private string $apiName;
+
+    #[ORM\Column(length: 100)]
     private string $name;
 
-    #[ORM\OneToMany(mappedBy: 'eggGroup', targetEntity: PokemonEggGroup::class, orphanRemoval: true)]
-    private Collection $pokemonEggGroups;
+    #[ORM\ManyToMany(targetEntity: Pokemon::class, mappedBy: 'eggGroups')]
+    private Collection $pokemons;
+
 
     public function __construct()
     {
-        $this->pokemonEggGroups = new ArrayCollection();
+        $this->pokemons = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getApiName(): string
+    {
+        return $this->apiName;
+    }
+
+    public function setApiName(string $apiName): self
+    {
+        $this->apiName = $apiName;
+        return $this;
     }
 
     public function getName(): string
@@ -44,28 +60,18 @@ class EggGroup
         return $this;
     }
 
-    /** @return Collection<int, PokemonEggGroup> */
-    public function getPokemonEggGroups(): Collection
+    public function addPokemon(Pokemon $pokemon): self
     {
-        return $this->pokemonEggGroups;
-    }
-
-    public function addPokemonEggGroup(PokemonEggGroup $pokemonEggGroup): self
-    {
-        if (!$this->pokemonEggGroups->contains($pokemonEggGroup)) {
-            $this->pokemonEggGroups->add($pokemonEggGroup);
-            $pokemonEggGroup->setEggGroup($this);
+        if (!$this->pokemons->contains($pokemon)) {
+            $this->pokemons->add($pokemon);
         }
+
         return $this;
     }
 
-    public function removePokemonEggGroup(PokemonEggGroup $pokemonEggGroup): self
+    public function removePokemon(Pokemon $pokemon): self
     {
-        if ($this->pokemonEggGroups->removeElement($pokemonEggGroup)) {
-            if ($pokemonEggGroup->getEggGroup() === $this) {
-                $pokemonEggGroup->setEggGroup(null);
-            }
-        }
+        $this->pokemons->removeElement($pokemon);
         return $this;
     }
 }

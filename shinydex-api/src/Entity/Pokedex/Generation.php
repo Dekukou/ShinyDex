@@ -25,10 +25,14 @@ class Generation
     #[ORM\OneToMany(mappedBy: 'generation', targetEntity: Game::class)]
     private Collection $games;
 
+    #[ORM\OneToMany(mappedBy: 'generation', targetEntity: VersionGroup::class)]
+    private Collection $versionGroups;
+
     public function __construct()
     {
         $this->pokemons = new ArrayCollection();
         $this->games = new ArrayCollection();
+        $this->versionGroups = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -57,5 +61,10 @@ class Generation
     public function getGames(): Collection
     {
         return $this->games;
+    }
+
+    public function getVersionGroups(): Collection
+    {
+        return $this->versionGroups;
     }
 }

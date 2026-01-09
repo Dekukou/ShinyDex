@@ -7,6 +7,7 @@ use App\Entity\Evolution\PokemonEvolution;
 use App\Entity\Evolution\PokemonFamily;
 use App\Entity\Evolution\Item;
 use App\Entity\Pokedex\Pokemon;
+use App\Entity\Pokedex\PokemonSpecies;
 use App\Service\PokeApi\PokeApiClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -21,6 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 )]
 class ImportEvolutionsCommand extends Command
 {
+    private array $processedChains = [];
     private array $triggerCache = [];
 
     public function __construct(
@@ -33,25 +35,18 @@ class ImportEvolutionsCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit species')
+            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
             ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit  = $input->getOption('limit');
-        $offset = (int) ($input->getOption('offset') ?? 0);
+        $limit = (int) $input->getOption('limit') ?: null;
+        $offset = (int) $input->getOption('offset') ?: 0;
         $dryRun = $input->getOption('dry-run');
 
-        $output->writeln('<info>Starting evolutions import...</info>');
-
-        $query = 'pokemon-species?limit=2000';
-        $speciesList = $this->client->get($query)['results'];
-
-        if ($limit !== null) {
-            $speciesList = array_slice($speciesList, $offset, (int) $limit);
-        }
+        $speciesList = $this->client->get('pokemon-species?limit=2000')['results'];
 
         foreach ($speciesList as $speciesData) {
             $species = $this->client->getByUrl($speciesData['url']);
@@ -61,23 +56,37 @@ class ImportEvolutionsCommand extends Command
             }
 
             $chainData = $this->client->getByUrl($species['evolution_chain']['url']);
+            $chainId = $chainData['id'];
+
+            // ✅ Skip already processed chains
+            if (isset($this->processedChains[$chainId])) {
+                continue;
+            }
+
+            $this->processedChains[$chainId] = true;
 
             $family = $this->getOrCreateFamily($chainData);
-            $pokemonName = $family->getName();
-            $output->writeln("✔ Evolution: $pokemonName");
-            $this->parseChain(
-                $chainData['chain'],
-                null,
-                $family
-            );
-        }
 
-        if (!$dryRun) {
-            $this->em->flush();
+            // // ✅ Attach ALL varieties (forms) to family
+            // $this->attachVarietiesToFamily($species, $family);
+
+            $this->attachAllFormsToFamily($chainData, $family);
+
+
+            // ✅ Parse evolution chain ONCE
+            $this->parseChain($chainData['chain'], null, $family);
+
+            if (!$dryRun) {
+                $this->em->flush();
+            }
+
+            $output->writeln("ChainID $chainId");
+
+            $this->em->clear();
+            $this->triggerCache = [];
         }
 
         $output->writeln('<info>✔ Evolutions imported successfully</info>');
-
         return Command::SUCCESS;
     }
 
@@ -87,13 +96,17 @@ class ImportEvolutionsCommand extends Command
 
     private function getOrCreateFamily(array $chainData): PokemonFamily
     {
-        $rootName = $chainData['chain']['species']['name'];
+        $chainId = $chainData['id'];
 
-        $family = $this->em->getRepository(PokemonFamily::class)
-            ->findOneBy(['name' => $rootName]);
+        $family = $this->em
+            ->getRepository(PokemonFamily::class)
+            ->findOneBy(['chainId' => $chainId]);
 
         if (!$family) {
-            $family = (new PokemonFamily())->setName($rootName);
+            $family = (new PokemonFamily())
+                ->setChainId($chainId)
+                ->setName($chainData['chain']['species']['name']);
+
             $this->em->persist($family);
         }
 
@@ -101,7 +114,57 @@ class ImportEvolutionsCommand extends Command
     }
 
     // ==================================================
-    // RECURSIVE CHAIN PARSING
+    // VARIETIES (FORMS)
+    // ==================================================
+
+    private function attachVarietiesToFamily(array $species, PokemonFamily $family): void
+    {
+        $pokemonRepo = $this->em->getRepository(Pokemon::class);
+
+        foreach ($species['varieties'] as $variety) {
+            $pokemon = $pokemonRepo->findOneBy([
+                'formKey' => $variety['pokemon']['name']
+            ]);
+
+            if ($pokemon) {
+                $pokemon->setFamily($family);
+            }
+        }
+    }
+
+    private function collectSpeciesFromChain(array $node, array &$speciesNames): void
+    {
+        $speciesNames[] = $node['species']['name'];
+
+        foreach ($node['evolves_to'] as $child) {
+            $this->collectSpeciesFromChain($child, $speciesNames);
+        }
+    }
+
+    private function attachAllFormsToFamily(array $chainData, PokemonFamily $family): void
+    {
+        $speciesNames = [];
+        $this->collectSpeciesFromChain($chainData['chain'], $speciesNames);
+
+        $pokemonRepo = $this->em->getRepository(Pokemon::class);
+
+        foreach ($speciesNames as $speciesName) {
+            $speciesData = $this->client->get('/pokemon-species/' . $speciesName);
+
+            foreach ($speciesData['varieties'] as $variety) {
+                $pokemon = $pokemonRepo->findOneBy([
+                    'formKey' => $variety['pokemon']['name']
+                ]);
+
+                if ($pokemon) {
+                    $pokemon->setFamily($family);
+                }
+            }
+        }
+    }
+
+    // ==================================================
+    // EVOLUTION CHAIN
     // ==================================================
 
     private function parseChain(
@@ -110,52 +173,63 @@ class ImportEvolutionsCommand extends Command
         PokemonFamily $family
     ): void {
         $pokemonRepo = $this->em->getRepository(Pokemon::class);
-        $itemRepo    = $this->em->getRepository(Item::class);
-        $evoRepo     = $this->em->getRepository(PokemonEvolution::class);
+        $itemRepo = $this->em->getRepository(Item::class);
+
+        $speciesRepo = $this->em->getRepository(PokemonSpecies::class);
+
+        $species = $speciesRepo->findOneBy([
+            'nameEn' => $node['species']['name']
+        ]);
+
+        if (!$species) {
+            return;
+        }
 
         $to = $pokemonRepo->findOneBy([
-            'nameEn' => $node['species']['name']
+            'species' => $species,
+            'regionForm' => null // forme par défaut
         ]);
 
         if (!$to) {
             return;
         }
 
-        // 🔗 Link Pokémon to its family
         $to->setFamily($family);
 
         if ($from) {
+            // dd($from);
             foreach ($node['evolution_details'] as $detail) {
-                $trigger = $this->getOrCreateTrigger($detail['trigger']['name']);
 
-                // ❌ Prevent duplicate evolutions
-                $existing = $evoRepo->findOneBy([
-                    'fromPokemon' => $from,
-                    'toPokemon'   => $to,
-                    'trigger'     => $trigger,
-                ]);
+                // ✅ Avoid duplicate evolutions
+                $existing = $this->em->getRepository(PokemonEvolution::class)
+                    ->findOneBy([
+                        'fromPokemon' => $from,
+                        'toPokemon' => $to,
+                        'minLevel' => $detail['min_level']
+                    ]);
 
                 if ($existing) {
                     continue;
                 }
 
-                $evolution = (new PokemonEvolution())
+                $evolution = new PokemonEvolution();
+                $evolution
                     ->setFromPokemon($from)
                     ->setToPokemon($to)
-                    ->setTrigger($trigger)
-                    ->setMinLevel($detail['min_level'] ?? null)
+                    ->setTrigger(
+                        $this->getOrCreateTrigger($detail['trigger']['name'])
+                    )
+                    ->setMinLevel($detail['min_level'] ?? 0)
                     ->setTradeRequired($detail['trigger']['name'] === 'trade')
                     ->setExtraCondition(
                         $this->extractExtraConditions($detail)
                     );
 
-                if (!empty($detail['item'])) {
+                if ($detail['item']) {
                     $item = $itemRepo->findOneBy([
                         'apiName' => $detail['item']['name']
                     ]);
-                    if ($item) {
-                        $evolution->setRequiredItem($item);
-                    }
+                    $evolution->setRequiredItem($item);
                 }
 
                 $this->em->persist($evolution);
@@ -170,26 +244,23 @@ class ImportEvolutionsCommand extends Command
     // ==================================================
     // TRIGGERS
     // ==================================================
-
     private function getOrCreateTrigger(string $name): EvolutionTrigger
     {
         if (isset($this->triggerCache[$name])) {
             return $this->triggerCache[$name];
         }
 
-        $repo = $this->em->getRepository(EvolutionTrigger::class);
-        $trigger = $repo->findOneBy(['name' => $name]);
+        $trigger = $this->em
+            ->getRepository(EvolutionTrigger::class)
+            ->findOneBy(['name' => $name]);
 
         if (!$trigger) {
             $trigger = (new EvolutionTrigger())->setName($name);
             $this->em->persist($trigger);
         }
 
-        $this->triggerCache[$name] = $trigger;
-
-        return $trigger;
+        return $this->triggerCache[$name] = $trigger;
     }
-
 
     // ==================================================
     // EXTRA CONDITIONS

@@ -48,33 +48,32 @@ class ImportAbilitiesCommand extends Command
         foreach ($list['results'] as $entry) {
             $abilityData = $this->pokeApiClient->getByUrl($entry['url']);
 
-            $apiIdentifier = $abilityData['name'];
+            $apiName = $abilityData['name'];
 
             // 🔑 clé unique technique
             $ability = $this->abilityRepository->findOneBy([
-                'apiIdentifier' => $apiIdentifier,
+                'apiName' => $apiName,
             ]);
 
             if (!$ability) {
                 $ability = new Ability();
-                $ability->setApiIdentifier($apiIdentifier);
+                $ability->setApiName($apiName);
                 $this->em->persist($ability);
             }
 
             // 🇫🇷 Nom FR via TON helper
             $nameFr = $this->translator->getFrenchName(
-                $apiIdentifier,
+                $apiName,
                 'ability'
             );
 
             // 🇬🇧 Nom EN (fallback simple)
-            $nameEn = ucfirst(str_replace('-', ' ', $apiIdentifier));
+            $nameEn = ucfirst(str_replace('-', ' ', $apiName));
 
-            // 📖 Description FR (directement depuis effect_entries)
             $description = null;
-            foreach ($abilityData['effect_entries'] ?? [] as $effect) {
+            foreach ($abilityData['flavor_text_entries'] ?? [] as $effect) {
                 if (($effect['language']['name'] ?? null) === 'fr') {
-                    $description = $effect['effect'] ?? null;
+                    $description = $effect['flavor_text'] ?? null;
                     break;
                 }
             }
@@ -87,7 +86,7 @@ class ImportAbilitiesCommand extends Command
             $output->writeln(sprintf(
                 ' - %s (%s)',
                 $ability->getNameFr(),
-                $apiIdentifier
+                $apiName
             ));
         }
 

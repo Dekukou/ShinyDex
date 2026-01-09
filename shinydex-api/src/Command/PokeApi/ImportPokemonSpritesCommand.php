@@ -46,7 +46,7 @@ class ImportPokemonSpritesCommand extends Command
         $pokemons = $this->em->getRepository(Pokemon::class)->findAll();
 
         foreach ($pokemons as $pokemon) {
-            $data = $this->api->get('/pokemon/' . $pokemon->getNameEn());
+            $data = $this->api->get('/pokemon/' . $pokemon->getFormKey());
 
             $sprites = $data['sprites'];
             if (!$sprites['front_default']) {
@@ -87,7 +87,7 @@ class ImportPokemonSpritesCommand extends Command
             $name = $pokemon->getNameFr();
             $this->em->persist($spriteEntity);
             $output->writeln("✔ Sprite: $name");
-            usleep(200_000);
+            // usleep(200_000); // TODO uncomment when dl sprites in local
         }
 
         if (!$dryRun) {

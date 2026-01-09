@@ -8,10 +8,9 @@ use App\Entity\Evolution\PokemonFamily;
 use App\Entity\Ability\PokemonAbility;
 use App\Entity\Capture\PokemonCaptureHistory;
 use App\Entity\Fight\PokemonType;
-use App\Entity\Fight\PokemonAttackLevel;
-use App\Entity\Fight\PokemonAttackMachine;
+use App\Entity\Move\PokemonMove;
 use App\Entity\Pokedex\RegionForm;
-use App\Entity\Reproduction\PokemonEggGroup;
+use App\Entity\Reproduction\EggGroup;
 use App\Entity\Sprite\PokemonSprite;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -35,10 +34,16 @@ class Pokemon
     private ?PokemonSpecies $species = null;
 
     #[ORM\Column(length: 150, unique: true)]
-    private string $nameEn;
+    private string $formKey;
 
     #[ORM\Column(length: 150, nullable: true)]
     private ?string $nameFr = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $nameEn = null;
+
+    #[ORM\Column()]
+    private bool $isDefault = true;
 
     #[ORM\ManyToOne(inversedBy: 'members')]
     private ?PokemonFamily $family = null;
@@ -78,12 +83,6 @@ class Pokemon
     #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAbility::class)]
     private Collection $abilities;
 
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAttackLevel::class)]
-    private Collection $levelAttacks;
-
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonAttackMachine::class)]
-    private Collection $machineAttacks;
-
     #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonType::class)]
     private Collection $types;
 
@@ -93,11 +92,20 @@ class Pokemon
     #[ORM\ManyToOne(inversedBy: 'pokemons')]
     private ?RegionForm $regionForm = null;
 
-    #[ORM\OneToMany(mappedBy: 'pokemon', targetEntity: PokemonEggGroup::class)]
+    #[ORM\ManyToMany(targetEntity: EggGroup::class, inversedBy: 'pokemons')]
+    #[ORM\JoinTable(name: 'pokemon_egg_group')]
     private Collection $eggGroups;
 
     #[ORM\OneToOne(mappedBy: 'pokemon', targetEntity: PokemonSprite::class)]
     private ?PokemonSprite $sprite = null;
+
+    #[ORM\OneToMany(
+        mappedBy: 'pokemon',
+        targetEntity: PokemonMove::class,
+        orphanRemoval: true
+    )]
+    private Collection $pokemonMoves;
+
 
 
     public function __construct()
@@ -105,6 +113,7 @@ class Pokemon
         $this->captures = new ArrayCollection();
         $this->evolutions = new ArrayCollection();
         $this->abilities = new ArrayCollection();
+        $this->eggGroups = new ArrayCollection();
     }
 
     // ==================================================
@@ -127,14 +136,14 @@ class Pokemon
         return $this;
     }
 
-    public function getNameEn(): string
+    public function getFormKey(): string
     {
-        return $this->nameEn;
+        return $this->formKey;
     }
 
-    public function setNameEn(string $nameEn): self
+    public function setFormKey(string $formKey): self
     {
-        $this->nameEn = $nameEn;
+        $this->formKey = $formKey;
         return $this;
     }
 
@@ -146,6 +155,29 @@ class Pokemon
     public function setNameFr(?string $nameFr): self
     {
         $this->nameFr = $nameFr;
+        return $this;
+    }
+
+    public function getNameEn(): ?string
+    {
+        return $this->nameEn;
+    }
+
+    public function setNameEn(?string $nameEn): self
+    {
+        $this->nameEn = $nameEn;
+        return $this;
+    }
+
+    public function getIsDefault(): bool
+    {
+        return $this->isDefault;
+    }
+
+    public function setIsDefault(bool $isDefault): self
+    {
+        $this->isDefault = $isDefault;
+
         return $this;
     }
 
@@ -168,6 +200,17 @@ class Pokemon
     public function setFamily(?PokemonFamily $family): self
     {
         $this->family = $family;
+        return $this;
+    }
+
+    public function getGeneration(): ?Generation
+    {
+        return $this->generation;
+    }
+
+    public function setGeneration(?Generation $generation): self
+    {
+        $this->generation = $generation;
         return $this;
     }
 
@@ -239,5 +282,38 @@ class Pokemon
     {
         $this->speed = $speed;
         return $this;
+    }
+
+    // Relations
+
+    /**
+     * @return Collection<int, EggGroup>
+     */
+    public function getEggGroups(): Collection
+    {
+        return $this->eggGroups;
+    }
+
+    public function addEggGroup(EggGroup $eggGroup): self
+    {
+        if (!$this->eggGroups->contains($eggGroup)) {
+            $this->eggGroups->add($eggGroup);
+            $eggGroup->addPokemon($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEggGroup(EggGroup $eggGroup): self
+    {
+        if ($this->eggGroups->removeElement($eggGroup)) {
+            $eggGroup->removePokemon($this);
+        }
+        return $this;
+    }
+
+    public function getPokemonMoves(): Collection
+    {
+        return $this->pokemonMoves;
     }
 }

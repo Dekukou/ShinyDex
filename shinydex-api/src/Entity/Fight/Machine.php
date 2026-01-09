@@ -4,12 +4,18 @@ namespace App\Entity\Fight;
 
 use ApiPlatform\Metadata as Api;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use App\Entity\Pokedex\Generation;
+use App\Entity\Pokedex\VersionGroup;
 
 #[Api\ApiResource]
 #[ORM\Entity]
+#[ORM\Table(
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(
+            name: 'uniq_machine_name_vg',
+            columns: ['name', 'version_group_id']
+        )
+    ]
+)]
 class Machine
 {
     #[ORM\Id]
@@ -20,21 +26,13 @@ class Machine
     #[ORM\Column(length: 50)]
     private string $name; // CT01, CS02, TM100...
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'machines')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Generation $generation = null;
+    private ?VersionGroup $versionGroup = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Attack $attack = null;
-
-    #[ORM\OneToMany(mappedBy: 'machine', targetEntity: PokemonAttackMachine::class)]
-    private Collection $teaches;
-
-    public function __construct()
-    {
-        $this->teaches = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -52,14 +50,14 @@ class Machine
         return $this;
     }
 
-    public function getGeneration(): ?Generation
+    public function getVersionGroup(): ?VersionGroup
     {
-        return $this->generation;
+        return $this->versionGroup;
     }
 
-    public function setGeneration(?Generation $generation): self
+    public function setVersionGroup(?VersionGroup $versionGroup): self
     {
-        $this->generation = $generation;
+        $this->versionGroup = $versionGroup;
         return $this;
     }
 
@@ -71,41 +69,6 @@ class Machine
     public function setAttack(?Attack $attack): self
     {
         $this->attack = $attack;
-        return $this;
-    }
-
-    /** @return Collection<int, PokemonAttackMachine> */
-    public function getTeaches(): Collection
-    {
-        return $this->teaches;
-    }
-
-    public function setTeaches(Collection $teaches): self
-    {
-        // On détache les anciennes relations
-        foreach ($this->teaches as $attackMachine) {
-            if (!$teaches->contains($attackMachine)) {
-                $attackMachine->setMachine(null);
-            }
-        }
-
-        // On attache les nouvelles relations
-        foreach ($teaches as $attackMachine) {
-            $attackMachine->setMachine($this);
-        }
-
-        $this->teaches = $teaches;
-
-        return $this;
-    }
-
-    public function addTeach(PokemonAttackMachine $attackMachine): self
-    {
-        if (!$this->teaches->contains($attackMachine)) {
-            $this->teaches->add($attackMachine);
-            $attackMachine->setMachine($this);
-        }
-
         return $this;
     }
 }

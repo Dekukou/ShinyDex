@@ -4,7 +4,9 @@ namespace App\Command\PokeApi;
 
 use App\Entity\Pokedex\Game;
 use App\Entity\Pokedex\Generation;
+use App\Entity\Pokedex\VersionGroup;
 use App\Service\PokeApi\PokeApiClient;
+use App\Service\PokeApi\PokeApiTranslationHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -20,10 +22,13 @@ class ImportGamesCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly PokeApiClient $client
+        private readonly PokeApiClient $client,
+        private PokeApiTranslationHelper $translator,
     ) {
         parent::__construct();
     }
+
+    private array $versionGroupCache = [];
 
     protected function configure(): void
     {
@@ -43,15 +48,13 @@ class ImportGamesCommand extends Command
         foreach ($versions['results'] as $versionData) {
             $version = $this->client->getByUrl($versionData['url']);
 
-            $versionGroup = $this->client->getByUrl(
+            $versionGroupData = $this->client->getByUrl(
                 $version['version_group']['url']
             );
 
-            $generationData = $this->client->getByUrl(
-                $versionGroup['generation']['url']
-            );
+            $versionGroup = $this->getOrCreateVersionGroup($versionGroupData);
 
-            $generationName = $generationData['name'];
+            $generationName = $versionGroup->getGeneration()->getName();
 
             $generation = $this->em->getRepository(Generation::class)
                 ->findOneBy(['name' => $generationName]);
@@ -68,6 +71,7 @@ class ImportGamesCommand extends Command
                 $name = $version['name'];
                 $game
                     ->setName($version['name'])
+                    ->setVersionGroup($versionGroup)
                     ->setGeneration($generation);
 
                 $this->em->persist($game);
@@ -81,5 +85,47 @@ class ImportGamesCommand extends Command
 
         $output->writeln('<info>✔ Games imported</info>');
         return Command::SUCCESS;
+    }
+
+    private function getOrCreateVersionGroup(array $versionGroupData): VersionGroup
+    {
+        $apiName = $versionGroupData['name'];
+
+        // ✅ 1. Cache mémoire (le plus important)
+        if (isset($this->versionGroupCache[$apiName])) {
+            return $this->versionGroupCache[$apiName];
+        }
+
+        // ✅ 2. DB lookup (si cache vide)
+        $repo = $this->em->getRepository(VersionGroup::class);
+        $versionGroup = $repo->findOneBy(['apiName' => $apiName]);
+
+        if (!$versionGroup) {
+            $generationData = $this->client->getByUrl(
+                $versionGroupData['generation']['url']
+            );
+
+            $generation = $this->em->getRepository(Generation::class)
+                ->findOneBy(['name' => $generationData['name']]);
+
+            $versionGroup = (new VersionGroup())
+                ->setApiName($apiName)
+                ->setName(
+                    $this->formatVersionGroupName($versionGroupData['name'])
+                )
+                ->setGeneration($generation);
+
+            $this->em->persist($versionGroup);
+        }
+
+        // ✅ 3. Mise en cache
+        $this->versionGroupCache[$apiName] = $versionGroup;
+
+        return $versionGroup;
+    }
+
+    private function formatVersionGroupName(string $apiName): string
+    {
+        return ucwords(str_replace('-', ' / ', $apiName));
     }
 }

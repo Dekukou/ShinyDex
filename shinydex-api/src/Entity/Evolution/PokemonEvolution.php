@@ -23,7 +23,7 @@ class PokemonEvolution
     #[ORM\JoinColumn(nullable: false)]
     private ?Pokemon $toPokemon = null;
 
-    #[ORM\ManyToOne(inversedBy: 'evolutions')]
+    #[ORM\ManyToOne(inversedBy: 'evolutions', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?EvolutionTrigger $trigger = null;
 

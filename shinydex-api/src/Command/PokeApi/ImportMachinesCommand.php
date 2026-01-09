@@ -4,9 +4,8 @@ namespace App\Command\PokeApi;
 
 use App\Entity\Fight\Machine;
 use App\Entity\Fight\Attack;
-use App\Entity\Pokedex\Generation;
+use App\Entity\Pokedex\VersionGroup;
 use App\Service\PokeApi\PokeApiClient;
-use App\Service\PokeApi\PokeApiTranslationHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -16,14 +15,15 @@ use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: 'pokeapi:import:machines',
-    description: 'Import machines (TM / HM / TR) from PokéAPI'
+    description: 'Import machines (CT / CS / DT) from PokéAPI'
 )]
 class ImportMachinesCommand extends Command
 {
+    private array $versionGroupCache = [];
+
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly PokeApiClient $api,
-        private readonly PokeApiTranslationHelper $translator,
+        private readonly PokeApiClient $api
     ) {
         parent::__construct();
     }
@@ -31,15 +31,13 @@ class ImportMachinesCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit items')
-            ->addOption('offset', null, InputOption::VALUE_OPTIONAL, 'Offset')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Dry run (no flush)');
+            ->addOption('limit', null, InputOption::VALUE_OPTIONAL)
+            ->addOption('offset', null, InputOption::VALUE_OPTIONAL)
+            ->addOption('dry-run', null, InputOption::VALUE_NONE);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = (int) $input->getOption('limit') ?: null;
-        $offset = (int) $input->getOption('offset') ?: 0;
         $dryRun = $input->getOption('dry-run');
         $output->writeln('<info>Importing machines...</info>');
 
@@ -47,65 +45,54 @@ class ImportMachinesCommand extends Command
 
         foreach ($list['results'] as $entry) {
             $data = $this->api->getByUrl($entry['url']);
+
             /** ---------- Attack ---------- */
             $attack = $this->em->getRepository(Attack::class)
                 ->findOneBy(['apiName' => $data['move']['name']]);
 
             if (!$attack) {
-                $output->writeln(
-                    sprintf('<comment>Attack not found: %s</comment>', $data['move']['name'])
-                );
                 continue;
             }
 
-            $versionGroup = $this->api->getByUrl(
-                $data['version_group']['url']
-            );
+            /** ---------- VersionGroup ---------- */
+            $vgData = $this->api->getByUrl($data['version_group']['url']);
+            $vgName = $vgData['name'];
 
-            $generationData = $this->api->getByUrl(
-                $versionGroup['generation']['url']
-            );
+            if (!isset($this->versionGroupCache[$vgName])) {
+                $this->versionGroupCache[$vgName] = $this->em
+                    ->getRepository(VersionGroup::class)
+                    ->findOneBy(['apiName' => $vgName]);
+            }
 
-            $generationName = $generationData['name'];
+            $versionGroup = $this->versionGroupCache[$vgName];
 
-            /** ---------- Generation ---------- */
-            $generation = $this->em->getRepository(Generation::class)
-                ->findOneBy(['name' => $generationName]);
-
-            if (!$generation) {
-                $output->writeln(
-                    sprintf('<comment>Generation not found: %s</comment>', $generationName)
-                );
+            if (!$versionGroup) {
                 continue;
             }
 
-            /** ---------- Machine name ---------- */
-            // Exemple : "tm01", "tr45"
-            $rawName = strtoupper($data['item']['name']); // TM01, HM03, TR45
-
+            /** ---------- Machine ---------- */
             $machineName = $this->normalizeMachineName($data['item']['name']);
 
-            /** ---------- Create / Update ---------- */
             $machine = $this->em->getRepository(Machine::class)
                 ->findOneBy([
                     'name' => $machineName,
-                    'generation' => $generation,
+                    'versionGroup' => $versionGroup,
                 ]) ?? new Machine();
 
             $machine
                 ->setName($machineName)
-                ->setGeneration($generation)
+                ->setVersionGroup($versionGroup)
                 ->setAttack($attack);
+
             $this->em->persist($machine);
-            $output->writeln("✔ Machine: $machineName");
+            $output->writeln("✔ Machine: $machineName ({$versionGroup->getApiName()})");
         }
 
         if (!$dryRun) {
             $this->em->flush();
         }
 
-        $output->writeln('<info>Machines imported successfully</info>');
-
+        $output->writeln('<info>✔ Machines imported</info>');
         return Command::SUCCESS;
     }
 

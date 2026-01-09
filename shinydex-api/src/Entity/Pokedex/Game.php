@@ -23,6 +23,10 @@ class Game
 
     #[ORM\ManyToOne(inversedBy: 'games')]
     #[ORM\JoinColumn(nullable: false)]
+    private VersionGroup $versionGroup;
+
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Generation $generation = null;
 
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: PokemonCaptureHistory::class)]
@@ -53,14 +57,26 @@ class Game
         return $this;
     }
 
-    public function getGeneration(): ?Generation
+    public function getVersionGroup(): ?VersionGroup
+    {
+        return $this->versionGroup;
+    }
+
+    public function setVersionGroup(?VersionGroup $versionGroup): self
+    {
+        $this->versionGroup = $versionGroup;
+        return $this;
+    }
+
+    public function getGeneration(): Generation
     {
         return $this->generation;
     }
 
-    public function setGeneration(?Generation $generation): self
+    public function setGeneration(Generation $generation): self
     {
         $this->generation = $generation;
+
         return $this;
     }
 }

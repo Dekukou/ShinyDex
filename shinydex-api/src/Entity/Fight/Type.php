@@ -19,6 +19,9 @@ class Type
     private ?int $id = null;
 
     #[ORM\Column(length: 100, unique: true)]
+    private string $apiName;
+
+    #[ORM\Column(length: 100)]
     private string $name;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: PokemonType::class, orphanRemoval: true)]
@@ -36,6 +39,18 @@ class Type
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getApiName(): string
+    {
+        return $this->apiName;
+    }
+
+    public function setApiName(string $apiName): self
+    {
+        $this->apiName = $apiName;
+
+        return $this;
     }
 
     public function getName(): string

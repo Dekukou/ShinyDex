@@ -63,7 +63,7 @@ class ImportAttacksCommand extends Command
                 ->setDamageClass($data['damage_class']['name'])
                 ->setPriority($data['priority'])
                 ->setDescription(
-                    $this->translator->getFlavorText($data['effect_entries'])
+                    $this->translator->getFlavorText($data['flavor_text_entries'])
                 );
 
             $this->em->persist($attack);

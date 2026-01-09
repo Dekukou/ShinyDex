@@ -27,6 +27,9 @@ class PokemonAbility
     #[ORM\Column]
     private bool $isHidden = false;
 
+    #[ORM\Column]
+    private int $slot = 1; // 1 = primary, 2 = secondary
+
     public function getId(): ?int
     {
         return $this->id;
@@ -62,6 +65,17 @@ class PokemonAbility
     public function setIsHidden(bool $isHidden): self
     {
         $this->isHidden = $isHidden;
+        return $this;
+    }
+
+    public function getSlot(): int
+    {
+        return $this->slot;
+    }
+
+    public function setSlot(int $slot): self
+    {
+        $this->slot = $slot;
         return $this;
     }
 }

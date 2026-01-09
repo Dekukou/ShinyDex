@@ -46,7 +46,9 @@ class ImportEggGroupsCommand extends Command
             $group = $this->em->getRepository(EggGroup::class)
                 ->findOneBy(['name' => $name]) ?? new EggGroup();
 
-            $group->setName($name);
+            $group->setName($name)
+                ->setApiName($result['name']);
+
             $this->em->persist($group);
             $output->writeln("✔ EggGroup: $name");
         }

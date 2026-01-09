@@ -36,16 +36,19 @@ class ImportAllCommand extends Command
         $io->title('🚀 Global Pokédex import');
 
         $commands = [
-            // 'pokeapi:import:types',
-            // 'pokeapi:import:egg-groups',
-            // 'pokeapi:import:abilities',
-            // 'app:import:items', // TODO trop d'objets, je veux que ceux dévolution
-            // 'pokeapi:import:attacks',
-            // 'app:import:generations',
-            // 'pokeapi:import:pokemon-species',
-            // 'pokeapi:import:pokemons',
-            // 'pokeapi:import:machines', TODO améliorer pour rajouter un gameVersion
-            // 'app:import:evolutions',
+            'pokeapi:import:types',
+            'pokeapi:import:egg-groups',
+            'pokeapi:import:abilities',
+            'app:import:items',
+            'pokeapi:import:attacks',
+            'app:import:generations',
+            'app:import:games',
+            'pokeapi:import:pokemon-species',
+            'pokeapi:import:machines',
+            'pokeapi:import:pokemons',
+            // ? Uncomment this line only if you want to retrieve changes to the Pokemon moves.
+            // 'app:import:pokemon-moves',
+            'app:import:evolutions',
             'app:import:pokemon-sprites',
         ];
 

@@ -20,6 +20,9 @@ class PokemonFamily
     #[ORM\Column(length: 150)]
     private string $name;
 
+    #[ORM\Column(type: 'integer', unique: true)]
+    private int $chainId;
+
     #[ORM\OneToMany(mappedBy: 'family', targetEntity: Pokemon::class)]
     private Collection $members;
 
@@ -41,6 +44,17 @@ class PokemonFamily
     public function setName(string $name): self
     {
         $this->name = $name;
+        return $this;
+    }
+
+    public function getChainId(): int
+    {
+        return $this->chainId;
+    }
+
+    public function setChainId(int $chainId): self
+    {
+        $this->chainId = $chainId;
         return $this;
     }
 
