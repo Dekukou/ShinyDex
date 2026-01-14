@@ -30,18 +30,35 @@ services:
     networks:
       - shinydex
 
+  # app:
+  #   build:
+  #     context: ./shinydex-app
+  #   container_name: shinydex-app
+  #   volumes:
+  #     - ./shinydex-app:/app
+  #     - ./shinydex-app/node_modules:/app/node_modules
+  #   ports:
+  #     - "5173:5173"
+  #   command: npm run dev -- --host
+  #   networks:
+  #     - shinydex
+
   app:
-    build:
-      context: ./shinydex-app
+    image: node:20-alpine
     container_name: shinydex-app
+    working_dir: /app
     volumes:
       - ./shinydex-app:/app
-      - node_modules_app:/app/node_modules
     ports:
-      - "3000:3000"
-    command: npm run dev -- --host
-    networks:
-      - shinydex
+      - "5173:5173"
+    command: >
+      sh -c "
+      if [ ! -f package.json ]; then
+        npm create vite@latest . -- --template react-ts &&
+        npm install
+      fi &&
+      npm run dev -- --host
+      "
 
   db:
     image: mysql:8.0

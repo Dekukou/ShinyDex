@@ -179,6 +179,9 @@ class ImportEvolutionsCommand extends Command
                 ->setExtraCondition(
                     empty($conditions) ? null : json_encode($conditions, JSON_UNESCAPED_UNICODE)
                 )
+                ->setRequiredItem(
+                    empty($detail['item']) ? null : $this->em->getRepository(Item::class)->findOneBy(['apiName' => $detail['item']['name']])
+                )
         );
     }
 

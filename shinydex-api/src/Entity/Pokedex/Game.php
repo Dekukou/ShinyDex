@@ -2,14 +2,25 @@
 
 namespace App\Entity\Pokedex;
 
-use ApiPlatform\Metadata as Api;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use App\State\Pokedex\GameCollectionProvider;
+use App\Dto\Pokedex\GameReadDto;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Capture\PokemonCaptureHistory;
 use App\Entity\Capture\HuntSession;
 
-#[Api\ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/games',
+            provider: GameCollectionProvider::class,
+            output: GameReadDto::class
+        )
+    ]
+)]
 #[ORM\Entity]
 class Game
 {
@@ -32,7 +43,10 @@ class Game
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: PokemonCaptureHistory::class)]
     private Collection $captureHistories;
 
-    #[ORM\OneToMany(mappedBy: 'game', targetEntity: HuntSession::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'game',
+        targetEntity: HuntSession::class
+    )]
     private Collection $huntSessions;
 
     public function __construct()

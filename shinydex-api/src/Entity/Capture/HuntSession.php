@@ -2,13 +2,43 @@
 
 namespace App\Entity\Capture;
 
-use ApiPlatform\Metadata as Api;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\User\User;
 use App\Entity\Pokedex\Pokemon;
 use App\Entity\Pokedex\Game;
+use App\Entity\Capture\HuntMethod;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use App\Dto\Hunt\HuntReadDto;
+use App\Dto\Hunt\HuntCreateDto;
+use App\Dto\Hunt\HuntUpdateDto;
+use App\State\Hunt\HuntCollectionProvider;
+use App\State\Hunt\HuntCreateProcessor;
+use App\State\Hunt\HuntUpdateProcessor;
 
-#[Api\ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            provider: HuntCollectionProvider::class
+        ),
+        new Get(), // IMPORTANT
+        new Post(
+            input: HuntCreateDto::class,
+            output: HuntReadDto::class,
+            processor: HuntCreateProcessor::class,
+            security: 'is_granted("ROLE_USER")'
+        ),
+        new Patch(
+            input: HuntUpdateDto::class,
+            output: HuntReadDto::class,
+            processor: HuntUpdateProcessor::class,
+            security: 'object.getUser() == user'
+        )
+    ]
+)]
 #[ORM\Entity]
 class HuntSession
 {
@@ -34,18 +64,20 @@ class HuntSession
     private ?HuntMethod $huntMethod = null;
 
     #[ORM\Column]
-    private int $encounters = 0;
+    private int $counter = 0;
 
-    #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $startedAt;
+    #[ORM\Column]
+    private bool $isShinyFound = false;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $endedAt = null;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $startedAt;
 
-    public function __construct()
-    {
-        $this->startedAt = new \DateTime();
-    }
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $endedAt = null;
+
+    /* ===================== */
+    /* Getters / Setters     */
+    /* ===================== */
 
     public function getId(): ?int
     {
@@ -57,7 +89,7 @@ class HuntSession
         return $this->user;
     }
 
-    public function setUser(?User $user): self
+    public function setUser(User $user): self
     {
         $this->user = $user;
         return $this;
@@ -68,7 +100,7 @@ class HuntSession
         return $this->pokemon;
     }
 
-    public function setPokemon(?Pokemon $pokemon): self
+    public function setPokemon(Pokemon $pokemon): self
     {
         $this->pokemon = $pokemon;
         return $this;
@@ -79,31 +111,64 @@ class HuntSession
         return $this->game;
     }
 
-    public function setGame(?Game $game): self
+    public function setGame(Game $game): self
     {
         $this->game = $game;
         return $this;
     }
 
-    public function getHuntMethod(): ?HuntMethod
+    public function getMethod(): ?HuntMethod
     {
         return $this->huntMethod;
     }
 
-    public function setHuntMethod(?HuntMethod $huntMethod): self
+    public function setMethod(HuntMethod $huntMethod): self
     {
         $this->huntMethod = $huntMethod;
         return $this;
     }
 
-    public function getEncounters(): int
+    public function getCounter(): int
     {
-        return $this->encounters;
+        return $this->counter;
     }
 
-    public function setEncounters(int $encounters): self
+    public function setCounter(int $counter): self
     {
-        $this->encounters = $encounters;
+        $this->counter = $counter;
+        return $this;
+    }
+
+    public function isShinyFound(): bool
+    {
+        return $this->isShinyFound;
+    }
+
+    public function setIsShinyFound(bool $isShinyFound): self
+    {
+        $this->isShinyFound = $isShinyFound;
+        return $this;
+    }
+
+    public function getStartedAt(): \DateTimeImmutable
+    {
+        return $this->startedAt;
+    }
+
+    public function setStartedAt(\DateTimeImmutable $startedAt): self
+    {
+        $this->startedAt = $startedAt;
+        return $this;
+    }
+
+    public function getEndedAt(): ?\DateTimeImmutable
+    {
+        return $this->endedAt;
+    }
+
+    public function setEndedAt(?\DateTimeImmutable $endedAt): self
+    {
+        $this->endedAt = $endedAt;
         return $this;
     }
 }

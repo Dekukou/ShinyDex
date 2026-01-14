@@ -2,7 +2,14 @@
 
 namespace App\Entity\User;
 
-use ApiPlatform\Metadata as Api;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use App\Dto\User\MeReadDto;
+use App\Dto\User\UserCreateDto;
+use App\Dto\ShinyDex\ShinyDexReadDto;
+use App\State\ShinyDex\ShinyDexCollectionProvider;
+use App\State\User\UserCreateProcessor;
 use App\Repository\User\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -11,8 +18,31 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use App\Entity\Capture\PokemonCaptureHistory;
 use App\Entity\Capture\HuntSession;
+use App\State\User\MeProvider;
 
-#[Api\ApiResource]
+#[ApiResource(
+    operations: [
+        new Post(
+            uriTemplate: '/users',
+            input: UserCreateDto::class,
+            processor: UserCreateProcessor::class,
+            security: 'is_granted("PUBLIC_ACCESS")'
+        ),
+        new Get(
+            uriTemplate: '/me',
+            output: MeReadDto::class,
+            provider: MeProvider::class,
+            security: "is_granted('ROLE_USER')",
+            name: 'api_me'
+        ),
+        new Get(
+            uriTemplate: '/shiny-dex',
+            output: ShinyDexReadDto::class,
+            provider: ShinyDexCollectionProvider::class,
+            security: "is_granted('ROLE_USER')"
+        )
+    ]
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface

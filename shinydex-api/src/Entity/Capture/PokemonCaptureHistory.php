@@ -3,12 +3,30 @@
 namespace App\Entity\Capture;
 
 use ApiPlatform\Metadata as Api;
+use App\Dto\CaptureHistory\CaptureHistoryCreateDto;
+use App\Dto\CaptureHistory\CaptureHistoryReadDto;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Pokedex\Pokemon;
 use App\Entity\User\User;
 use App\Entity\Pokedex\Game;
+use App\State\CaptureHistory\CaptureHistoryCreateProcessor;
+use App\State\CaptureHistory\CaptureHistoryCollectionProvider;
 
-#[Api\ApiResource]
+#[Api\ApiResource(
+    operations: [
+        new Api\GetCollection(
+            output: CaptureHistoryReadDto::class,
+            provider: CaptureHistoryCollectionProvider::class,
+            security: "is_granted('ROLE_USER')"
+        ),
+        new Api\Post(
+            input: CaptureHistoryCreateDto::class,
+            output: CaptureHistoryReadDto::class,
+            processor: CaptureHistoryCreateProcessor::class,
+            security: "is_granted('ROLE_USER')"
+        )
+    ]
+)]
 #[ORM\Entity]
 class PokemonCaptureHistory
 {

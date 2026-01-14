@@ -3,6 +3,7 @@
 namespace App\Repository\Capture;
 
 use App\Entity\Capture\HuntSession;
+use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +17,19 @@ class HuntSessionRepository extends ServiceEntityRepository
         parent::__construct($registry, HuntSession::class);
     }
 
-    //    /**
-    //     * @return HuntSession[] Returns an array of HuntSession objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('h.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findByUser(
+        User $user,
+        ?bool $onlyOngoing = false
+    ): array {
+        $qb = $this->createQueryBuilder('h')
+            ->andWhere('h.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('h.startedAt', 'DESC');
 
-    //    public function findOneBySomeField($value): ?HuntSession
-    //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($onlyOngoing) {
+            $qb->andWhere('h.endedAt IS NULL');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

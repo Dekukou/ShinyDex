@@ -1,0 +1,501 @@
+{
+	"info": {
+		"_postman_id": "78e9327c-e0ea-4320-b8c8-90e783805f0d",
+		"name": "ShinyDex API",
+		"description": "Collection Postman pour l’API ShinyDex (Symfony 6 + API Platform 3)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "51382965",
+		"_collection_link": "https://jeremypuig15-8912429.postman.co/workspace/J%C3%A9r%C3%A9my-Puig-(Dekukou)'s-Workspa~8f3b8925-22ec-4bae-82b8-430b39c35adf/collection/51382965-78e9327c-e0ea-4320-b8c8-90e783805f0d?action=share&source=collection_link&creator=51382965"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"pm.environment.set('token', json.token);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login_check",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login_check"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pokédex",
+			"item": [
+				{
+					"name": "Pokemon Species (Collection)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon_species?page=1&itemsPerPage=30",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon_species"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "itemsPerPage",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pokemon Species (Item)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon_species/25",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon_species",
+								"25"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hunts",
+			"item": [
+				{
+					"name": "Get Hunts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/hunt_sessions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hunt_sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hunt",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pokemonId\": 25,\n  \"gameId\": 1,\n  \"huntMethodId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hunt_sessions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hunt_sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Hunt",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/merge-patch+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"encounters\": 150\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hunt_sessions/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hunt_sessions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "End Hunt",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/hunt_sessions/1/end",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hunt_sessions",
+								"1",
+								"end"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Capture History",
+			"item": [
+				{
+					"name": "Get Captures",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon_capture_histories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon_capture_histories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Capture",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pokemonId\": 25,\n  \"gameId\": 1,\n  \"ballId\": 3,\n  \"huntMethodId\": 2,\n  \"isShiny\": true,\n  \"gender\": \"male\",\n  \"level\": 15,\n  \"notes\": \"Premier shiny !\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pokemon_capture_histories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon_capture_histories"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Static Data",
+			"item": [
+				{
+					"name": "Games",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/games",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"games"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Balls",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/balls",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"balls"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hunt Methods",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/hunt_methods",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hunt_methods"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ShinyDex",
+			"item": [
+				{
+					"name": "Get ShinyDex",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/shiny-dex",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"shiny-dex"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"// ============================================================\r",
+					"// AUTOMATIC JWT TOKEN REFRESH MECHANISM\r",
+					"// ============================================================\r",
+					"// Ce script s'exécute après CHAQUE requête de la collection.\r",
+					"// Il détecte les erreurs 401 \"Expired JWT Token\" et:\r",
+					"// 1. Appelle automatiquement la requête Login pour obtenir un nouveau token\r",
+					"// 2. Stocke le nouveau token dans la variable de collection {{token}}\r",
+					"// 3. Relance UNE SEULE FOIS la requête initiale qui avait échoué\r",
+					"// ============================================================\r",
+					"\r",
+					"(async function() {\r",
+					"    // --- CONFIGURATION ---\r",
+					"    const LOGIN_URL = pm.collectionVariables.get('baseURL') + '/login_check';\r",
+					"    const LOGIN_CREDENTIALS = {\r",
+					"        username: 'admin',\r",
+					"        password: 'admin'\r",
+					"    };\r",
+					"    \r",
+					"    // --- FLAG ANTI-BOUCLE INFINIE ---\r",
+					"    const RETRY_FLAG = '__token_refresh_attempted__';\r",
+					"    const hasAlreadyRetried = pm.variables.get(RETRY_FLAG);\r",
+					"    \r",
+					"    // --- DÉTECTION DU 401 AVEC \"Expired JWT Token\" ---\r",
+					"    if (pm.response.code === 401 && !hasAlreadyRetried) {\r",
+					"        let responseBody;\r",
+					"        try {\r",
+					"            responseBody = pm.response.json();\r",
+					"        } catch (e) {\r",
+					"            responseBody = pm.response.text();\r",
+					"        }\r",
+					"        \r",
+					"        // Vérifie si le message contient \"Expired JWT Token\"\r",
+					"        const isExpiredToken = \r",
+					"            (typeof responseBody === 'object' && responseBody.message && responseBody.message.includes('Expired JWT Token')) ||\r",
+					"            (typeof responseBody === 'string' && responseBody.includes('Expired JWT Token'));\r",
+					"        \r",
+					"        if (isExpiredToken) {\r",
+					"            console.log('🔄 Token JWT expiré détecté - Tentative de rafraîchissement automatique...');\r",
+					"            \r",
+					"            // --- ÉTAPE 1: Appeler Login pour obtenir un nouveau token ---\r",
+					"            try {\r",
+					"                const loginResponse = await pm.sendRequest({\r",
+					"                    url: LOGIN_URL,\r",
+					"                    method: 'POST',\r",
+					"                    header: { 'Content-Type': 'application/json' },\r",
+					"                    body: {\r",
+					"                        mode: 'raw',\r",
+					"                        raw: JSON.stringify(LOGIN_CREDENTIALS)\r",
+					"                    }\r",
+					"                });\r",
+					"                \r",
+					"                // --- ÉTAPE 2: Extraire et stocker le nouveau token ---\r",
+					"                if (loginResponse.code === 200) {\r",
+					"                    const loginData = loginResponse.json();\r",
+					"                    \r",
+					"                    if (loginData && loginData.token) {\r",
+					"                        pm.collectionVariables.set('token', loginData.token);\r",
+					"                        console.log('✅ Nouveau token JWT obtenu et stocké dans {{token}}');\r",
+					"                        \r",
+					"                        // --- ÉTAPE 3: Marquer le flag et relancer la requête ---\r",
+					"                        pm.variables.set(RETRY_FLAG, true);\r",
+					"                        pm.execution.setNextRequest(pm.info.requestName);\r",
+					"                        console.log('🔁 Relance de \"' + pm.info.requestName + '\" avec le nouveau token...');\r",
+					"                    } else {\r",
+					"                        console.error('❌ Token non trouvé dans la réponse de login');\r",
+					"                    }\r",
+					"                } else {\r",
+					"                    console.error('❌ Erreur login: Status ' + loginResponse.code);\r",
+					"                }\r",
+					"            } catch (error) {\r",
+					"                console.error('❌ Erreur rafraîchissement token:', error);\r",
+					"            }\r",
+					"        }\r",
+					"    } else if (pm.response.code === 401 && hasAlreadyRetried) {\r",
+					"        console.error('⚠️ Retry déjà effectué - Pas de nouvelle tentative (anti-boucle infinie)');\r",
+					"    }\r",
+					"})();"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}

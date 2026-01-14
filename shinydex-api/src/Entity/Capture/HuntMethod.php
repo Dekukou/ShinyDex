@@ -22,7 +22,10 @@ class HuntMethod
     #[ORM\OneToMany(mappedBy: 'huntMethod', targetEntity: PokemonCaptureHistory::class)]
     private Collection $captures;
 
-    #[ORM\OneToMany(mappedBy: 'huntMethod', targetEntity: HuntSession::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'huntMethod',
+        targetEntity: HuntSession::class
+    )]
     private Collection $sessions;
 
     public function __construct()
