@@ -17,6 +17,7 @@ use App\Dto\Hunt\HuntCreateDto;
 use App\Dto\Hunt\HuntUpdateDto;
 use App\State\Hunt\HuntCollectionProvider;
 use App\State\Hunt\HuntCreateProcessor;
+use App\State\Hunt\HuntEndProcessor;
 use App\State\Hunt\HuntUpdateProcessor;
 
 #[ApiResource(
@@ -36,7 +37,13 @@ use App\State\Hunt\HuntUpdateProcessor;
             output: HuntReadDto::class,
             processor: HuntUpdateProcessor::class,
             security: 'object.getUser() == user'
-        )
+        ),
+        new Post(
+            uriTemplate: '/hunts/{id}/end',
+            input: false,
+            processor: HuntEndProcessor::class,
+            security: 'is_granted("ROLE_USER")'
+        ),
     ]
 )]
 #[ORM\Entity]

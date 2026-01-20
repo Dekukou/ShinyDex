@@ -4,6 +4,7 @@ namespace App\Dto\ShinyDex;
 
 final class ShinyDexEntryDto
 {
+    public int $id;
     public int $pokedexNumber;
     public string $name;
     public string $sprite;

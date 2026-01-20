@@ -14,7 +14,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 final class ShinyDexCollectionProvider implements ProviderInterface
 {
-    private const BOX_SIZE = 30;
+    private const DEFAULT_BOX_SIZE = 30;
 
     public function __construct(
         private EntityManagerInterface $em,
@@ -25,10 +25,24 @@ final class ShinyDexCollectionProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
 
+        $filters = $context['filters'] ?? [];
+
+        $boxSize = isset($filters['limit'])
+            ? max(1, (int) $filters['limit'])
+            : self::DEFAULT_BOX_SIZE;
+
+        $boxesPerPage = isset($filters['boxes'])
+            ? max(1, (int) $filters['boxes'])
+            : 4;
+
+        $offsetGroup = isset($filters['offset'])
+            ? max(0, (int) $filters['offset'])
+            : 0;
+
         $dto = new ShinyDexReadDto();
 
         /** ----------------------------
-         *  1️⃣ Shinys capturés par l'user
+         *  1️⃣ Shinys capturés
          *  ---------------------------- */
         $captured = $this->em->createQueryBuilder()
             ->select('IDENTITY(c.pokemon) AS pokemonId, c.formKey')
@@ -61,7 +75,7 @@ final class ShinyDexCollectionProvider implements ProviderInterface
         $boxes = [];
         $boxIndex = 1;
 
-        foreach (array_chunk($nationalPokemon, self::BOX_SIZE) as $chunk) {
+        foreach (array_chunk($nationalPokemon, $boxSize) as $chunk) {
             $box = $this->buildBox(
                 $chunk,
                 $capturedMap,
@@ -89,7 +103,6 @@ final class ShinyDexCollectionProvider implements ProviderInterface
 
         foreach ($formGroups as $formType => $label) {
             $forms = $this->em->getRepository(Pokemon::class)
-
                 ->createQueryBuilder('p')
                 ->join('p.species', 'ps')
                 ->where('p.regionForm = :type')
@@ -98,7 +111,7 @@ final class ShinyDexCollectionProvider implements ProviderInterface
                 ->getQuery()
                 ->getResult();
 
-            foreach (array_chunk($forms, self::BOX_SIZE) as $chunk) {
+            foreach (array_chunk($forms, $boxSize) as $chunk) {
                 $box = $this->buildBox(
                     $chunk,
                     $capturedMap,
@@ -114,14 +127,24 @@ final class ShinyDexCollectionProvider implements ProviderInterface
             }
         }
 
-        $dto->boxes = $boxes;
+        /** ----------------------------
+         *  4️⃣ Offset des boxes
+         *  ---------------------------- */
+        $startIndex = $offsetGroup * $boxesPerPage;
+
+        $dto->boxes = array_slice(
+            $boxes,
+            $startIndex,
+            $boxesPerPage
+        );
+
+        $dto->totalBoxes = count($boxes);
+
+        $dto->hasMore = ($startIndex + $boxesPerPage) < $dto->totalBoxes;
 
         return $dto;
     }
 
-    /** --------------------------------
-     *  Construction d'une box
-     *  -------------------------------- */
     private function buildBox(
         array $pokemonList,
         array $capturedMap,
@@ -137,11 +160,11 @@ final class ShinyDexCollectionProvider implements ProviderInterface
 
         foreach ($pokemonList as $pokemon) {
             $entry = new ShinyDexEntryDto();
+            $entry->id = $pokemon->getId();
             $entry->pokedexNumber = $pokemon->getSpecies()->getPokedexNumber();
             $entry->name = $pokemon->getNameFr();
             $entry->sprite = $pokemon->getSprite()->getFrontShiny();
-            // $entry->formType = $pokemon->getFormType();
-            $entry->formType = "test";
+            $entry->formType = 'test';
             $entry->formKey = $pokemon->getFormKey();
 
             $captureKey = $pokemon->getId() . '|' . ($entry->formKey ?? 'base');
